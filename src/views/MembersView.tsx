@@ -1,6 +1,6 @@
 
 import React, { useState, useRef } from 'react';
-import {Modal, NordicButton } from '../components/Shared';
+import {NordicCard, Modal, NordicButton } from '../components/Shared';
 import type{ Member } from '../types';
 
 interface MembersViewProps {
