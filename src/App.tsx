@@ -1,4 +1,4 @@
-
+import SyncStatusBar from './components/SyncStatusBar';
 import React, { useState, useEffect } from 'react';
 import ScheduleView from './views/ScheduleView';
 import BookingsView from './views/BookingsView';
@@ -177,6 +177,8 @@ const App: React.FC = () => {
           })}
         </div>
       </nav>
+            {/* 🔵 離線 / 同步狀態提示 */}
+      <SyncStatusBar />
     </div>
   );
 };
