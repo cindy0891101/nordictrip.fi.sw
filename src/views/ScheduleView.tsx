@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { NordicCard, Modal, NordicButton } from '../components/Shared';
+import { Modal, NordicButton } from '../components/Shared';
 import { MOCK_WEATHER, CATEGORY_COLORS } from '../constants';
 import type{ ScheduleItem, Category, WeatherInfo } from '../types';
 import { dbService } from '../firebaseService';
