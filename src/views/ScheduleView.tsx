@@ -210,6 +210,7 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ isEditMode, onToggleLock })
   };
 
   const currentDayData = selectedDate ? (fullSchedule[selectedDate] || { items: [], metadata: { locationName: '未設定', forecast: [], isLive: false } }) : null;
+  if (!currentDayData) return null;
 
   const getCategoryIcon = (category: Category) => {
     switch(category) {
