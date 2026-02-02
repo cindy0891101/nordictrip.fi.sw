@@ -140,7 +140,8 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ isEditMode, onToggleLock })
       const params = "hourly=temperature_2m,apparent_temperature,weathercode&timezone=auto";
       let apiUrl = (diffDays > 16 || diffDays < -1)
         ? `https://archive-api.open-meteo.com/v1/archive?latitude=${latitude}&longitude=${longitude}&start_date=${targetDate}&end_date=${targetDate}&${params}`
-        : `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&start_date=${targetDate}&end_date=${targetDate}&${params}`;
+        : `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&hourly=temperature_2m,apparent_temperature,weathercode&timezone=auto`
+
 
       const weatherRes = await fetch(apiUrl);
       const weatherData = await weatherRes.json();
