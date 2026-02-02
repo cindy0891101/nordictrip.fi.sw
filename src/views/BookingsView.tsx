@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { NordicCard, Modal, NordicButton } from '../components/Shared';
 import type { Booking, BookingType } from '../types';
 import { dbService } from '../firebaseService';
 
