@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { NordicCard, NordicButton, Modal } from '../components/Shared';
+import { NordicButton, Modal } from '../components/Shared';
 import { CURRENCIES as INITIAL_CURRENCIES, CATEGORY_COLORS } from '../constants';
 import type{ Expense, Member } from '../types';
 import { dbService } from '../firebaseService';
