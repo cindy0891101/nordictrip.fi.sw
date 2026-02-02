@@ -1,6 +1,4 @@
 
-import type { Member, ScheduleItem, WeatherInfo } from './types';
-
 export const CATEGORY_COLORS: Record<string, string> = {
   Attraction: 'bg-harbor', // Harbor Blue
   Food: 'bg-paper',      // Aged Paper
