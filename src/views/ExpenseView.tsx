@@ -215,7 +215,7 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ members }) => {
   });
 
     return balances;
-  }, [expenses, archivedSettlements, members, currencyRates]);
+  }, [expenses, settlements, members, currencyRates]);
 
   const settlementData = useMemo(() => {
     const debtors = (Object.entries(currentBalances) as [string, number][]).filter(([_, b]) => b < -0.1).sort((a, b) => a[1] - b[1]);
@@ -366,34 +366,51 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ members }) => {
   };
 
   const markAsCleared = (repayment: Repayment) => {
-    const record: ArchivedSettlement = {
-      ...repayment,
-      id: Date.now().toString(),
-      date: new Date().toISOString()
-    };
-    dbService.updateField('archivedSettlements', [record, ...archivedSettlements]);
+  const settlement: Settlement = {
+    id: Date.now().toString(),
+    type: 'GLOBAL',
+    expenseIds: expenses
+      .filter(e => !settledExpenseIdSet.has(e.id))
+      .map(e => e.id),
+    repayments: [repayment],
+    createdAt: new Date().toISOString(),
   };
+
+  dbService.updateField('settlements', [
+    settlement,
+    ...settlements,
+  ]);
+};
 
   const undoSettlement = (settlementId: string) => {
   dbService.updateField('settlements',
     settlements.filter(s => s.id !== settlementId));
 };
   const toggleMemberSettled = (exp: Expense, memberId: string) => {
-    const existing = archivedSettlements.find(s => s.expenseId === exp.id && s.fromId === memberId);
-    if (existing) {
-      undoSettlement(existing.id);
-    } else {
-      if (currentBalances[memberId] >= -0.1) return;
-      const rate = currencyRates[exp.currency] || 1;
-      const share = (exp.amount * rate) / exp.splitWith.length;
-      markAsCleared({
-        fromId: memberId,
-        toId: exp.payerId,
-        amount: share,
-        expenseId: exp.id
-      });
-    }
-  };
+    const toggleMemberSettled = (exp: Expense, memberId: string) => {
+  const existing = settlements.find(
+    s =>
+      s.type === 'EXPENSE' &&
+      s.expenseIds.includes(exp.id) &&
+      s.repayments.some(r => r.fromId === memberId));
+  if (existing) {
+    undoSettlement(existing.id); return;}
+  if (currentBalances[memberId] >= -0.1) return;
+  const rate = currencyRates[exp.currency] || 1;
+  const share = (exp.amount * rate) / exp.splitWith.length;
+  const settlement: Settlement = {
+    id: Date.now().toString(),
+    type: 'EXPENSE',
+    expenseIds: [exp.id],
+    repayments: [{
+      fromId: memberId,
+      toId: exp.payerId,
+      amount: share,}],
+    createdAt: new Date().toISOString(),};
+  dbService.updateField('settlements', [
+    settlement,...settlements,
+  ]);
+};
 
   const isMemberSettledForExpense = (expId: string, memberId: string) => {
   return settlements.some(
@@ -718,7 +735,7 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ members }) => {
               <span className="text-[10px] font-bold text-earth-dark/40 uppercase tracking-widest">已完成紀錄 (點擊可撤銷)</span>
             </div>
             <div className="flex-grow overflow-y-auto no-scrollbar space-y-2 pr-1 pb-2 max-h-[220px]">
-              {archivedSettlements.length === 0 ? (
+              {settlements.length === 0 ? (
                 <div className="py-6 text-center text-[10px] font-bold text-earth-dark/20 italic">尚無歷史紀錄</div>
               ) : (
                 {settlements.flatMap(s =>
@@ -852,14 +869,12 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ members }) => {
                     const m = members.find(mem => mem.id === id);
                     const isPayer = id === selectedExpense.payerId;
                     const isSettled = isMemberSettledForExpense(selectedExpense.id, id);
-                    const expenseTimestamp = parseInt(selectedExpense.id);
-                    const lastGlobalSettlementTime = memberLastGlobalSettlementTimes[id] || 0;
-                    const isCoveredByPastGlobalSettlement = !isSettled && expenseTimestamp < lastGlobalSettlementTime;
+                    const isCoveredByGlobalSettlement =!isSettled && settledExpenseIdSet.has(selectedExpense.id);
                     const isCurrentlyZeroDebt = !isSettled && currentBalances[id] >= -0.1;
                     const rate = currencyRates[selectedExpense.currency] || 1;
                     const shareTwd = Math.round((selectedExpense.amount * rate) / selectedExpense.splitWith.length);
                     return (
-                      <div key={id} className={`flex justify-between items-center p-4 rounded-[1.75rem] border-2 transition-all ${isPayer ? 'bg-paper/5 border-paper/20' : (isSettled || isCoveredByPastGlobalSettlement || isCurrentlyZeroDebt) ? 'bg-white/40 border-paper/10 opacity-60' : 'bg-white border-paper/10 shadow-sm'}`}>
+                      <div key={id} className={`flex justify-between items-center p-4 rounded-[1.75rem] border-2 transition-all ${isPayer ? 'bg-paper/5 border-paper/20' : (isSettled || isCoveredByGlobalSettlement || isCurrentlyZeroDebt) ? 'bg-white/40 border-paper/10 opacity-60' : 'bg-white border-paper/10 shadow-sm'}`}>
                         <div className="flex items-center gap-3">
                           <img src={m?.avatar} className="w-9 h-9 rounded-full border border-paper/20" alt="" />
                           <div className="flex flex-col">
