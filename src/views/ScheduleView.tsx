@@ -237,6 +237,13 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ isEditMode, onToggleLock })
       default: return isNight ? 'fa-cloud-moon text-slate-400' : 'fa-cloud text-white drop-shadow-md';
     }
   };
+const openInGoogleMaps = (address: string) => {
+  if (!address) return;
+  window.open(
+    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`,
+    '_blank'
+  );
+};
 
   const categoryList: Category[] = ['Attraction', 'Food', 'Transport', 'Accommodation', 'Activity', 'Shopping'];
 
@@ -332,6 +339,21 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ isEditMode, onToggleLock })
               <div className="flex-grow space-y-1 pl-2">
                 <div className="text-sm font-bold text-earth-dark tracking-wide">{item.time}</div>
                 <h4 className="text-xl font-bold text-ink leading-tight">{item.location}</h4>
+                {item.address && (
+  <div
+    onClick={(e) => {
+      e.stopPropagation();
+      openInGoogleMaps(item.address);
+    }}
+    className="text-[10px] font-bold text-harbor flex items-center gap-1.5 mt-1 cursor-pointer hover:underline"
+  >
+    <i className="fa-solid fa-location-dot"></i>
+    <span className="truncate max-w-[150px]">
+      {item.address}
+    </span>
+  </div>
+)}
+
                 {item.note && <p className="text-xs text-earth-dark font-normal mt-2 italic">{item.note}</p>}
               </div>
               {isEditMode && (
