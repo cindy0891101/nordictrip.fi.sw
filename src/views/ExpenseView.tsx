@@ -22,7 +22,7 @@ interface Settlement {
 
 interface ExpenseViewProps {
   members: Member[];
-}
+} 
 
 const CATEGORIES = [
   { id: 'Food', label: '餐飲', icon: 'fa-utensils' },
