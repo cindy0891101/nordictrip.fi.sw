@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Modal, NordicButton } from '../components/Shared';
 import { MOCK_WEATHER, CATEGORY_COLORS } from '../constants';
@@ -107,28 +108,11 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ isEditMode, onToggleLock })
     const interval = setInterval(updateTimeLeft, 60000);
     return () => clearInterval(interval);
   }, [dates]);
-  
-    const next = {...fullSchedule,[selectedDate]: updatedDayData};
 
-  updateScheduleCloud(
-  selectedDate,
-  updatedDayData,
-  next
-);
-   const updateScheduleCloud = (
-  date: string,
-  dayData: DayData,
-  nextFullSchedule: Record<string, DayData>
-) => {
-  // UI 仍然吃完整 schedule
-  setFullSchedule(nextFullSchedule);
-
-  // 🔥 關鍵：只更新該日期
-  dbService.updateNestedField(
-    `schedule.${date}`,
-    dayData
-  );
-};
+  const updateScheduleCloud = (newData: Record<string, DayData>) => {
+    setFullSchedule(newData);
+    dbService.updateField('schedule', newData);
+  };
 
   const fetchWeatherForLocationAndDate = useCallback(async (location: string, targetDate: string, isAutoUpgrade: boolean = false) => {
     const query = (location || "").trim();
