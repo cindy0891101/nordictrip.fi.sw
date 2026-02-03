@@ -187,3 +187,112 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({
       case 'Shopping':
         return 'fa-bag-shopping';
       default:
+        return 'fa-location-dot';
+    }
+  };
+
+  const categoryList: Category[] = [
+    'Attraction',
+    'Food',
+    'Transport',
+    'Accommodation',
+    'Activity',
+    'Shopping'
+  ];
+
+  /* =======================
+     Render
+======================= */
+
+  return (
+    <div className="pb-24 px-4 space-y-6">
+      {currentDayData.items.map((item) => (
+        <div
+          key={item.id}
+          className="bg-white rounded-[2rem] p-6 border-2 border-paper shadow-md"
+          onClick={() =>
+            isEditMode && (setEditingItem(item), setShowEditModal(true))
+          }
+        >
+          <div className="text-sm font-bold text-earth-dark">{item.time}</div>
+
+          <h4 className="text-xl font-bold text-ink leading-tight">
+            {item.location}
+          </h4>
+
+          {item.address && (
+            <div
+              onClick={(e) => {
+                e.stopPropagation();
+                openInGoogleMaps(item.address!);
+              }}
+              className="text-[10px] font-bold text-harbor flex items-center gap-1.5 mt-1 cursor-pointer hover:underline"
+            >
+              <i className="fa-solid fa-location-dot"></i>
+              <span className="truncate max-w-[150px]">
+                {item.address}
+              </span>
+            </div>
+          )}
+
+          {item.note && (
+            <p className="text-xs text-earth-dark italic mt-2">
+              {item.note}
+            </p>
+          )}
+        </div>
+      ))}
+
+      {/* Edit Modal */}
+      <Modal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        title="行程細節設定"
+      >
+        {editingItem && (
+          <div className="space-y-4">
+            <input
+              value={editingItem.location}
+              onChange={(e) =>
+                setEditingItem({ ...editingItem, location: e.target.value })
+              }
+              placeholder="項目名稱"
+              className="w-full h-12 px-4 rounded-xl border"
+            />
+
+            <input
+              value={editingItem.address || ''}
+              onChange={(e) =>
+                setEditingItem({ ...editingItem, address: e.target.value })
+              }
+              placeholder="地址 / 地標"
+              className="w-full h-12 px-4 rounded-xl border"
+            />
+
+            <NordicButton
+              onClick={() => {
+                const next = { ...fullSchedule };
+                Object.keys(next).forEach((d) => {
+                  if (next[d]?.items)
+                    next[d].items = next[d].items.filter(
+                      (i) => i.id !== editingItem.id
+                    );
+                });
+                next[selectedDate].items = [
+                  ...(next[selectedDate].items || []),
+                  editingItem
+                ].sort((a, b) => a.time.localeCompare(b.time));
+                updateScheduleCloud(next);
+                setShowEditModal(false);
+              }}
+            >
+              儲存行程
+            </NordicButton>
+          </div>
+        )}
+      </Modal>
+    </div>
+  );
+};
+
+export default ScheduleView;
