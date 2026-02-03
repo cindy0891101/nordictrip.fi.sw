@@ -9,7 +9,6 @@ interface Repayment {
   fromId: string;
   toId: string;
   amount: number;
-  expenseId?: string;
 }
 
 interface Settlement {
@@ -136,9 +135,9 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ members }) => {
   });
   const settledExpenseIdSet = useMemo(() => {
   const set = new Set<string>();
-  settlements.forEach(s => {
-    s.expenseIds.forEach(id => set.add(id));
-  });
+  settlements
+    .filter(s => s.type === 'GLOBAL')
+    .forEach(s => s.expenseIds.forEach(id => set.add(id)));
   return set;
 }, [settlements]);
 
@@ -387,17 +386,23 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ members }) => {
     settlements.filter(s => s.id !== settlementId));
 };
   const toggleMemberSettled = (exp: Expense, memberId: string) => {
-    const toggleMemberSettled = (exp: Expense, memberId: string) => {
   const existing = settlements.find(
     s =>
       s.type === 'EXPENSE' &&
       s.expenseIds.includes(exp.id) &&
-      s.repayments.some(r => r.fromId === memberId));
+      s.repayments.some(r => r.fromId === memberId)
+  );
+
   if (existing) {
-    undoSettlement(existing.id); return;}
+    undoSettlement(existing.id);
+    return;
+  }
+
   if (currentBalances[memberId] >= -0.1) return;
+
   const rate = currencyRates[exp.currency] || 1;
   const share = (exp.amount * rate) / exp.splitWith.length;
+
   const settlement: Settlement = {
     id: Date.now().toString(),
     type: 'EXPENSE',
@@ -405,10 +410,14 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ members }) => {
     repayments: [{
       fromId: memberId,
       toId: exp.payerId,
-      amount: share,}],
-    createdAt: new Date().toISOString(),};
+      amount: share,
+    }],
+    createdAt: new Date().toISOString(),
+  };
+
   dbService.updateField('settlements', [
-    settlement,...settlements,
+    settlement,
+    ...settlements,
   ]);
 };
 
@@ -738,7 +747,7 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ members }) => {
               {settlements.length === 0 ? (
                 <div className="py-6 text-center text-[10px] font-bold text-earth-dark/20 italic">尚無歷史紀錄</div>
               ) : (
-                {settlements.flatMap(s =>
+                settlements.flatMap(s =>
           s.repayments.map((r, idx) => {
             const from = members.find(m => m.id === r.fromId);
             const to = members.find(m => m.id === r.toId);
@@ -883,7 +892,7 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ members }) => {
                           </div>
                         </div>
                         <div>
-                          {isPayer ? <i className="fa-solid fa-crown text-yellow-500/40 text-xs mr-2"></i> : isSettled ? <button onClick={() => toggleMemberSettled(selectedExpense, id)} className="bg-paper/20 px-3 py-1.5 rounded-full text-[9px] font-bold text-earth-dark">已結清</button> : (isCoveredByPastGlobalSettlement || isCurrentlyZeroDebt) ? <button disabled className="bg-paper/5 px-3 py-1.5 rounded-full text-[9px] font-bold text-earth-dark/40 border border-paper/10">已隨總額結清</button> : <button onClick={() => toggleMemberSettled(selectedExpense, id)} className="bg-harbor/10 px-3 py-1.5 rounded-full text-[9px] font-bold text-harbor">標記結清</button>}
+                          {isPayer ? <i className="fa-solid fa-crown text-yellow-500/40 text-xs mr-2"></i> : isSettled ? <button onClick={() => toggleMemberSettled(selectedExpense, id)} className="bg-paper/20 px-3 py-1.5 rounded-full text-[9px] font-bold text-earth-dark">已結清</button> : (isCoveredByGlobalSettlement || isCurrentlyZeroDebt) ? <button disabled className="bg-paper/5 px-3 py-1.5 rounded-full text-[9px] font-bold text-earth-dark/40 border border-paper/10">已隨總額結清</button> : <button onClick={() => toggleMemberSettled(selectedExpense, id)} className="bg-harbor/10 px-3 py-1.5 rounded-full text-[9px] font-bold text-harbor">標記結清</button>}
                         </div>
                       </div>
                     );
