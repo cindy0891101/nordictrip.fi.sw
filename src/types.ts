@@ -11,6 +11,7 @@ export interface ScheduleItem {
   note?: string;
   mapUrl?: string;
   bookingRef?: string;
+  address?: string;
 }
 
 export interface WeatherInfo {
