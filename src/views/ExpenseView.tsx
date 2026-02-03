@@ -207,26 +207,15 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ members }) => {
       });
     });
 
-    archivedSettlements.forEach(s => {
-      if (balances[s.fromId] !== undefined) balances[s.fromId] += s.amount;
-      if (balances[s.toId] !== undefined) balances[s.toId] -= s.amount;
-    });
+    settlements.forEach(settlement => {
+    settlement.repayments.forEach(r => {
+    if (balances[r.fromId] !== undefined) balances[r.fromId] += r.amount;
+    if (balances[r.toId] !== undefined) balances[r.toId] -= r.amount;
+     });
+  });
 
     return balances;
   }, [expenses, archivedSettlements, members, currencyRates]);
-
-  const memberLastGlobalSettlementTimes = useMemo(() => {
-    const times: Record<string, number> = {};
-    members.forEach(m => {
-      const userGlobalSettlements = archivedSettlements.filter(s => !s.expenseId && s.fromId === m.id);
-      if (userGlobalSettlements.length > 0) {
-        times[m.id] = Math.max(...userGlobalSettlements.map(s => new Date(s.date).getTime()));
-      } else {
-        times[m.id] = 0;
-      }
-    });
-    return times;
-  }, [archivedSettlements, members]);
 
   const settlementData = useMemo(() => {
     const debtors = (Object.entries(currentBalances) as [string, number][]).filter(([_, b]) => b < -0.1).sort((a, b) => a[1] - b[1]);
@@ -385,10 +374,10 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ members }) => {
     dbService.updateField('archivedSettlements', [record, ...archivedSettlements]);
   };
 
-  const undoSettlement = (id: string) => {
-    dbService.updateField('archivedSettlements', archivedSettlements.filter(s => s.id !== id));
-  };
-
+  const undoSettlement = (settlementId: string) => {
+  dbService.updateField('settlements',
+    settlements.filter(s => s.id !== settlementId));
+};
   const toggleMemberSettled = (exp: Expense, memberId: string) => {
     const existing = archivedSettlements.find(s => s.expenseId === exp.id && s.fromId === memberId);
     if (existing) {
@@ -407,8 +396,13 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ members }) => {
   };
 
   const isMemberSettledForExpense = (expId: string, memberId: string) => {
-    return archivedSettlements.some(s => s.expenseId === expId && s.fromId === memberId);
-  };
+  return settlements.some(
+    s =>
+      s.type === 'EXPENSE' &&
+      s.expenseIds.includes(expId) &&
+      s.repayments.some(r => r.fromId === memberId)
+  );
+};
 
   const getCategoryIcon = (cat: string) => CATEGORIES.find(c => c.id === cat)?.icon || 'fa-tags';
   const formatDateDisplay = (dateStr: string) => {
@@ -727,27 +721,51 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ members }) => {
               {archivedSettlements.length === 0 ? (
                 <div className="py-6 text-center text-[10px] font-bold text-earth-dark/20 italic">尚無歷史紀錄</div>
               ) : (
-                archivedSettlements.map((s) => {
-                  const from = members.find(m => m.id === s.fromId);
-                  const to = members.find(m => m.id === s.toId);
-                  return (
-                    <div key={s.id} onClick={() => undoSettlement(s.id)} className="bg-[#F5F1EB]/50 py-2.5 px-4 rounded-[1.75rem] border border-[#E5DFD6] flex items-center justify-between active:scale-95 transition-all cursor-pointer group opacity-90">
-                      <div className="flex flex-col items-center gap-1 w-10">
-                        <img src={from?.avatar} className="w-7 h-7 rounded-full border border-white/50 grayscale opacity-40" alt="" />
-                        <span className="text-[8px] font-bold text-earth-dark/40">{from?.name}</span>
-                      </div>
-                      <div className="flex-1 text-center flex flex-col items-center justify-center">
-                        <div className="text-[11px] font-bold text-earth-dark/30 line-through mb-0.5 tracking-tight">NT$ {Math.round(s.amount).toLocaleString()}</div>
-                        <div className="bg-[#E5DFD6]/60 px-3 py-0.5 rounded-full text-[8px] font-bold text-earth-dark/50 uppercase tracking-widest">已結清</div>
-                      </div>
-                      <div className="flex flex-col items-center gap-1 w-10">
-                        <img src={to?.avatar} className="w-7 h-7 rounded-full border border-white/50 grayscale opacity-40" alt="" />
-                        <span className="text-[8px] font-bold text-earth-dark/40">{to?.name}</span>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
+                {settlements.flatMap(s =>
+          s.repayments.map((r, idx) => {
+            const from = members.find(m => m.id === r.fromId);
+            const to = members.find(m => m.id === r.toId);
+        
+            return (
+              <div
+                key={`${s.id}-${idx}`}
+                onClick={() => undoSettlement(s.id)}
+                className="bg-[#F5F1EB]/50 py-2.5 px-4 rounded-[1.75rem] border border-[#E5DFD6] flex items-center justify-between active:scale-95 transition-all cursor-pointer group opacity-90"
+              >
+                <div className="flex flex-col items-center gap-1 w-10">
+                  <img
+                    src={from?.avatar}
+                    className="w-7 h-7 rounded-full border border-white/50 grayscale opacity-40"
+                    alt=""
+                  />
+                  <span className="text-[8px] font-bold text-earth-dark/40">
+                    {from?.name}
+                  </span>
+                </div>
+        
+                <div className="flex-1 text-center flex flex-col items-center justify-center">
+                  <div className="text-[11px] font-bold text-earth-dark/30 line-through mb-0.5 tracking-tight">
+                    NT$ {Math.round(r.amount).toLocaleString()}
+                  </div>
+                  <div className="bg-[#E5DFD6]/60 px-3 py-0.5 rounded-full text-[8px] font-bold text-earth-dark/50 uppercase tracking-widest">
+                    已結清
+                  </div>
+                </div>
+        
+                <div className="flex flex-col items-center gap-1 w-10">
+                  <img
+                    src={to?.avatar}
+                    className="w-7 h-7 rounded-full border border-white/50 grayscale opacity-40"
+                    alt=""
+                  />
+                  <span className="text-[8px] font-bold text-earth-dark/40">
+                    {to?.name}
+                  </span>
+                </div>
+              </div>
+            );
+          })
+        )}
             </div>
           </div>
           <NordicButton onClick={() => setShowSettlement(false)} className="w-full h-14 bg-harbor text-white border-none shadow-xl rounded-2xl flex-shrink-0 text-xs font-bold tracking-[0.2em] uppercase">返回記帳本</NordicButton>
