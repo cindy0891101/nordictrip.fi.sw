@@ -12,9 +12,12 @@ interface Repayment {
   expenseId?: string;
 }
 
-interface ArchivedSettlement extends Repayment {
+interface Settlement {
   id: string;
-  date: string;
+  type: 'GLOBAL' | 'EXPENSE';
+  expenseIds: string[];
+  repayments: Repayment[];
+  createdAt: string;
 }
 
 interface ExpenseViewProps {
@@ -91,17 +94,17 @@ const DonutChart: React.FC<{ data: { label: string, value: number, color: string
 
 const ExpenseView: React.FC<ExpenseViewProps> = ({ members }) => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [archivedSettlements, setArchivedSettlements] = useState<ArchivedSettlement[]>([]);
+  const [settlements, setSettlements] = useState<Settlement[]>([]);
   const [currencyRates, setCurrencyRates] = useState<Record<string, number>>(INITIAL_CURRENCIES);
   const [lastSyncTime, setLastSyncTime] = useState<string>('');
 
   useEffect(() => {
     const unsubExp = dbService.subscribeField('expenses', (data) => setExpenses(data || []));
-    const unsubArch = dbService.subscribeField('archivedSettlements', (data) => setArchivedSettlements(data || []));
+    const unsubSettle = dbService.subscribeField('settlements',(data) => setSettlements(data || []));
     const unsubRates = dbService.subscribeField('currencyRates', (data) => {
       if (data && typeof data === 'object') setCurrencyRates(data as Record<string, number>);
     });
-    return () => { unsubExp(); unsubArch(); unsubRates(); };
+    return () => { unsubExp(); unsubSettle(); unsubRates(); };
   }, []);
 
   const [showAdd, setShowAdd] = useState(false);
@@ -131,6 +134,13 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ members }) => {
     payerId: '', splitWith: [] as string[],
     date: new Date().toISOString().split('T')[0]
   });
+  const settledExpenseIdSet = useMemo(() => {
+  const set = new Set<string>();
+  settlements.forEach(s => {
+    s.expenseIds.forEach(id => set.add(id));
+  });
+  return set;
+}, [settlements]);
 
   const totalTeamExpense = useMemo(() => {
     return Math.round(expenses.reduce((acc, exp) => {
