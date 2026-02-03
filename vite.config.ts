@@ -25,8 +25,8 @@ export default defineConfig({
       ],
 
       manifest: {
-        name: 'Nordic Trip',
-        short_name: 'NordicTrip',
+        name: '玟儒旅行團',
+        short_name: '玟儒旅行團',
         theme_color: '#577C8E',
         background_color: '#E7DDD3',
         display: 'standalone',
