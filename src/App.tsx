@@ -81,17 +81,21 @@ const App: React.FC = () => {
   };
 
   const updateMemberAvatar = async (id: string, file: File) => {
-  await uploadMemberAvatar(id, file);
-};
-
-  const updateMemberAvatar = async (id: string, file: File) => {
   await uploadMemberAvatar(id, file, members);
-}
+};
 
   const updateSharedDriveUrl = (url: string) => {
     setSharedDriveUrl(url);
     dbService.updateField('sharedDriveUrl', url);
   };
+
+  const updateMemberInfo = (id: string, name: string, title: string) => {
+  saveMembersToCloud(
+    members.map(m =>
+      m.id === id ? { ...m, name, title } : m
+    )
+  );
+};
 
   const renderContent = () => {
     switch (activeTab) {
