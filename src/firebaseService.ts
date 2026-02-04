@@ -19,7 +19,7 @@ import {
   getDownloadURL,
 } from 'firebase/storage';
 import type { Member } from './types';
-import { compressImage } from './utils/imageUtils';
+import { compressImage } from './imageUtils';
 
 const firebaseConfig = {
   apiKey: "AIzaSyChx0Ro7ArYxM1CQcBf41mq63p4AEVWZC4",
@@ -117,6 +117,7 @@ export const dbService = {
     }
   },
 };
+
 
 
 
