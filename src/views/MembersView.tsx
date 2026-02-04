@@ -106,14 +106,28 @@ const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
               </button>
             )}
             <div className="relative inline-block mb-2">
-              <img src={member.avatar} className="w-16 h-16 rounded-full border-[3px] border-slate shadow-inner object-cover" alt={member.name} />
-              <div onClick={(e) => { e.stopPropagation(); handleCameraClick(member.id); }} className="absolute bottom-0 right-0 bg-sage text-white w-6 h-6 rounded-full flex items-center justify-center border-2 border-white cursor-pointer active:scale-90 transition-all shadow-md"><i className="fa-solid fa-camera text-[8px]"></i></div>
+              <img
+                src={member.avatar}
+                alt={member.name}
+                className="w-16 h-16 rounded-full border-[3px] border-slate shadow-inner object-cover"
+              />
+            
+              {/* 相機 icon（只顯示） */}
+              <div className="absolute bottom-0 right-0 bg-sage text-white w-6 h-6 rounded-full flex items-center justify-center border-2 border-white shadow-md pointer-events-none">
+                <i className="fa-solid fa-camera text-[8px]"></i>
+              </div>
+            
+              {/* 🔥 iOS 可用的 file input */}
               <input
                 type="file"
                 accept="*/*"
+                className="absolute bottom-0 right-0 w-6 h-6 opacity-0 cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCurrentEditId(member.id); // ⭐ 關鍵：先記住是誰
+                }}
                 onChange={handleFileChange}
-                className="absolute bottom-0 right-0 w-6 h-6 opacity-0 cursor-pointer"/>
-              </div>
+              />
             </div>
             <div onClick={() => { if (isEditMode) { setCurrentEditId(member.id); setEditNameValue(member.name); setEditTitleValue(member.title || ''); setShowEditMemberModal(true); } }} className={`group/name flex flex-col items-center ${isEditMode ? 'cursor-pointer' : ''}`}>
               <h3 className="text-sm font-bold text-sage flex items-center gap-1">{member.name}{isEditMode && <i className="fa-solid fa-pen text-[8px] opacity-0 group-hover/name:opacity-100 transition-opacity"></i>}</h3>
