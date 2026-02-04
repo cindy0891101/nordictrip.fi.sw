@@ -151,7 +151,7 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ members }) => {
       }
       return acc;
     }, 0));
-  }, [expenses, members, currencyRates]);
+  }, [expenses, members, activeCurrency]);
 
   const analysisData = useMemo(() => {
     const categoriesSum: Record<string, { total: number, items: Expense[] }> = {};
