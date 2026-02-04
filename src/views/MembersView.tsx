@@ -34,7 +34,6 @@ const MembersView: React.FC<MembersViewProps> = ({
   const [editTitleValue, setEditTitleValue] = useState('');
   const [driveUrlInput, setDriveUrlInput] = useState(driveUrl);
   const [currentEditId, setCurrentEditId] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleAdd = () => {
     if (newName.trim()) {
@@ -52,10 +51,6 @@ const MembersView: React.FC<MembersViewProps> = ({
     }
   };
 
-  const handleCameraClick = (id: string) => {
-    setCurrentEditId(id);
-    fileInputRef.current?.click();
-  };
 
 const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   alert('📸 已選擇照片');
@@ -99,8 +94,6 @@ const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         <p className="text-earth-dark font-bold text-xs italic">旅伴們一起快樂出遊</p>
       </div>
 
-      <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
-
       <div className="grid grid-cols-2 gap-4">
         {members.map(member => (
           <NordicCard key={member.id} className="text-center py-5 relative group overflow-visible">
@@ -115,6 +108,12 @@ const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
             <div className="relative inline-block mb-2">
               <img src={member.avatar} className="w-16 h-16 rounded-full border-[3px] border-slate shadow-inner object-cover" alt={member.name} />
               <div onClick={(e) => { e.stopPropagation(); handleCameraClick(member.id); }} className="absolute bottom-0 right-0 bg-sage text-white w-6 h-6 rounded-full flex items-center justify-center border-2 border-white cursor-pointer active:scale-90 transition-all shadow-md"><i className="fa-solid fa-camera text-[8px]"></i></div>
+              <input
+                type="file"
+                accept="*/*"
+                onChange={handleFileChange}
+                className="absolute bottom-0 right-0 w-6 h-6 opacity-0 cursor-pointer"/>
+              </div>
             </div>
             <div onClick={() => { if (isEditMode) { setCurrentEditId(member.id); setEditNameValue(member.name); setEditTitleValue(member.title || ''); setShowEditMemberModal(true); } }} className={`group/name flex flex-col items-center ${isEditMode ? 'cursor-pointer' : ''}`}>
               <h3 className="text-sm font-bold text-sage flex items-center gap-1">{member.name}{isEditMode && <i className="fa-solid fa-pen text-[8px] opacity-0 group-hover/name:opacity-100 transition-opacity"></i>}</h3>
