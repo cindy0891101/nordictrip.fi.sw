@@ -19,6 +19,7 @@ import {
   getDownloadURL,
 } from 'firebase/storage';
 import type { Member } from './types';
+import { compressImage } from './utils/imageUtils';
 
 const firebaseConfig = {
   apiKey: "AIzaSyChx0Ro7ArYxM1CQcBf41mq63p4AEVWZC4",
@@ -61,8 +62,22 @@ export async function uploadMemberAvatar(
 ) {
   await ensureAuthReady();
 
-  const avatarRef = ref(storage, `avatars/${memberId}.jpg`);
-  await uploadBytes(avatarRef, file);
+  // 🔥 新增：壓縮 + 轉 JPEG
+  const safeFile = await compressImage(file);
+
+  console.log('Uploading avatar:', {
+    originalSizeMB: (file.size / 1024 / 1024).toFixed(2),
+    compressedSizeMB: (safeFile.size / 1024 / 1024).toFixed(2),
+    type: safeFile.type,
+  });
+
+  const avatarRef = ref(
+    storage,
+    `avatars/${memberId}_${Date.now()}.jpg` // 🔥 避免快取
+  );
+
+  await uploadBytes(avatarRef, safeFile);
+
   const url = await getDownloadURL(avatarRef);
 
   const updatedMembers = currentMembers.map(m =>
@@ -102,5 +117,6 @@ export const dbService = {
     }
   },
 };
+
 
 
