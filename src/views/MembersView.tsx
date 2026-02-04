@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import {NordicCard, Modal, NordicButton } from '../components/Shared';
 import type { Member } from '../types';
 
