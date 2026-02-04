@@ -6,7 +6,7 @@ import type { Member } from '../types';
 interface MembersViewProps {
   members: Member[];
   onAddMember: (name: string) => void;
-  onUpdateAvatar(id: string, file: File) => void;
+  onUpdateAvatar: (id: string, file: File) => void;
   onDeleteMember: (id: string) => void;
   onUpdateMemberInfo: (id: string, name: string, title: string) => void;
   isEditMode: boolean;
