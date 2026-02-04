@@ -54,12 +54,17 @@ const MembersView: React.FC<MembersViewProps> = ({
 
 const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   alert('📸 已選擇照片');
+
   const file = e.target.files?.[0];
-  if (file && currentEditId) {
-    onUpdateAvatar(currentEditId, file);
-    setCurrentEditId(null);
-    e.target.value = '';
+  const memberId = e.currentTarget.dataset.memberId;
+
+  if (!file || !memberId) {
+    alert('❌ 找不到成員 ID，未上傳');
+    return;
   }
+
+  onUpdateAvatar(memberId, file);
+  e.target.value = '';
 };
 
   const handleDriveClick = () => {
@@ -119,15 +124,12 @@ const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
             
               {/* 🔥 iOS 可用的 file input */}
               <input
-                type="file"
-                accept="*/*"
-                className="absolute bottom-0 right-0 w-6 h-6 opacity-0 cursor-pointer"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setCurrentEditId(member.id); // ⭐ 關鍵：先記住是誰
-                }}
-                onChange={handleFileChange}
-              />
+                  type="file"
+                  accept="*/*"
+                  data-member-id={member.id}
+                  className="absolute bottom-0 right-0 w-6 h-6 opacity-0 cursor-pointer"
+                  onChange={handleFileChange}
+                />
             </div>
             <div onClick={() => { if (isEditMode) { setCurrentEditId(member.id); setEditNameValue(member.name); setEditTitleValue(member.title || ''); setShowEditMemberModal(true); } }} className={`group/name flex flex-col items-center ${isEditMode ? 'cursor-pointer' : ''}`}>
               <h3 className="text-sm font-bold text-sage flex items-center gap-1">{member.name}{isEditMode && <i className="fa-solid fa-pen text-[8px] opacity-0 group-hover/name:opacity-100 transition-opacity"></i>}</h3>
