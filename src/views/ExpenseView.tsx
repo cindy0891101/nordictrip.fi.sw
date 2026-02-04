@@ -96,7 +96,7 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ members }) => {
   const [settlements, setSettlements] = useState<Settlement[]>([]);
   const [currencyRates, setCurrencyRates] = useState<Record<string, number>>(INITIAL_CURRENCIES);
   const [lastSyncTime, setLastSyncTime] = useState<string>('');
-  const [activeCurrency, setActiveCurrency] = useState<string>('TWD');
+  const [activeCurrency] = useState<string>('TWD');
 
   useEffect(() => {
     const unsubExp = dbService.subscribeField('expenses', (data) => setExpenses(data || []));
