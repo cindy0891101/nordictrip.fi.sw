@@ -14,7 +14,7 @@ interface Repayment {
 interface Settlement {
   id: string;
   type: 'GLOBAL' | 'EXPENSE';
-  expenseIds: string[];
+  expenseIds?: string[]; // ⬅️ 改成 optional
   repayments: Repayment[];
   createdAt: string;
 }
@@ -365,15 +365,12 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ members }) => {
   };
 
   const markAsCleared = (repayment: Repayment) => {
-  const settlement: Settlement = {
-    id: Date.now().toString(),
-    type: 'GLOBAL',
-    expenseIds: expenses
-      .filter(e => !settledExpenseIdSet.has(e.id))
-      .map(e => e.id),
-    repayments: [repayment],
-    createdAt: new Date().toISOString(),
-  };
+const settlement: Settlement = {
+  id: Date.now().toString(),
+  type: 'GLOBAL',
+  repayments: [repayment],
+  createdAt: new Date().toISOString(),
+};
 
   dbService.updateField('settlements', [
     settlement,
