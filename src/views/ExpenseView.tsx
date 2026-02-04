@@ -96,8 +96,8 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ members }) => {
   const [settlements, setSettlements] = useState<Settlement[]>([]);
   const [currencyRates, setCurrencyRates] = useState<Record<string, number>>(INITIAL_CURRENCIES);
   const [lastSyncTime, setLastSyncTime] = useState<string>('');
-  const [activeCurrency] = useState<string>('TWD');
-
+  const [activeCurrency, setActiveCurrency] =
+  useState<'TWD' | 'EUR'>('TWD');
   useEffect(() => {
     const unsubExp = dbService.subscribeField('expenses', (data) => setExpenses(data || []));
     const unsubSettle = dbService.subscribeField('settlements',(data) => setSettlements(data || []));
@@ -477,14 +477,32 @@ const settlement: Settlement = {
         <h1 className="text-3xl font-bold text-sage tracking-tight">記帳本</h1>
         <p className="text-earth-dark mt-1 font-bold text-xs italic">同步於雲端的團隊開支</p>
       </div>
-
+      <div className="flex gap-2 mt-3">
+        {(['TWD', 'EUR'] as const).map(c => (
+          <button
+            key={c}
+            onClick={() => setActiveCurrency(c)}
+            className={`
+              px-4 py-1.5 rounded-full text-[10px] font-bold tracking-widest
+              transition-all active:scale-95
+              ${
+                activeCurrency === c
+                  ? 'bg-harbor text-white shadow-md'
+                  : 'bg-paper/30 text-earth-dark/50'
+              }
+            `}
+          >
+            {c}
+          </button>
+        ))}
+      </div>
       <div className="bg-[#E7DDD3] px-7 py-5 border-none relative overflow-hidden nordic-shadow rounded-[2.5rem] shadow-xl">
         <div className="relative z-10 space-y-4">
           <div className="flex justify-between items-start">
             <div className="space-y-0">
               <span className="text-[10px] text-[#577C8E] font-bold uppercase tracking-[0.2em]">團隊總支出 ( 全體分攤項目 )</span>
               <div className="text-[32px] font-bold text-[#5C4D3C] tracking-tighter leading-tight mt-1">
-                NT$ {totalTeamExpense.toLocaleString()}
+                {activeCurrency} {totalTeamExpense.toLocaleString()}
               </div>
             </div>
             <div className="w-10 h-10 bg-[#F3EBE3] rounded-2xl flex items-center justify-center text-[#5C4D3C] shadow-sm">
@@ -520,7 +538,9 @@ const settlement: Settlement = {
         {expenses.length === 0 ? (
           <div className="py-16 text-center text-earth-dark/40 italic text-sm font-bold border-2 border-dashed border-paper/30 rounded-[2.5rem]">尚未有花費紀錄</div>
         ) : (
-          expenses.map(exp => {
+          expenses
+          .filter(exp => exp.currency === activeCurrency)
+          .map(exp => {
             const isFullSplit = members.length > 0 && exp.splitWith.length === members.length;
             return (
               <div key={exp.id} onClick={() => { setSelectedExpense(exp); setShowDetail(true); }} className="bg-white p-5 rounded-[2rem] border border-paper/40 flex justify-between items-center shadow-md active:scale-98 transition-all cursor-pointer">
