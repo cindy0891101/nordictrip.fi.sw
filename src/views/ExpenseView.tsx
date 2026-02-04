@@ -137,7 +137,7 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ members }) => {
   const set = new Set<string>();
   settlements
     .filter(s => s.type === 'GLOBAL')
-    .forEach(s => s.expenseIds.forEach(id => set.add(id)));
+    .forEach(s => s.expenseIds?.forEach(id => set.add(id)));
   return set;
 }, [settlements]);
 
@@ -384,11 +384,11 @@ const settlement: Settlement = {
 };
   const toggleMemberSettled = (exp: Expense, memberId: string) => {
   const existing = settlements.find(
-    s =>
-      s.type === 'EXPENSE' &&
-      s.expenseIds.includes(exp.id) &&
-      s.repayments.some(r => r.fromId === memberId)
-  );
+  s =>
+    s.type === 'EXPENSE' &&
+    s.expenseIds?.includes(exp.id) &&
+    s.repayments.some(r => r.fromId === memberId)
+);
 
   if (existing) {
     undoSettlement(existing.id);
@@ -420,11 +420,12 @@ const settlement: Settlement = {
 
   const isMemberSettledForExpense = (expId: string, memberId: string) => {
   return settlements.some(
-    s =>
-      s.type === 'EXPENSE' &&
-      s.expenseIds.includes(expId) &&
-      s.repayments.some(r => r.fromId === memberId)
+  s =>
+    s.type === 'EXPENSE' &&
+    s.expenseIds?.includes(expId) &&
+    s.repayments.some(r => r.fromId === memberId)
   );
+
 };
 
   const getCategoryIcon = (cat: string) => CATEGORIES.find(c => c.id === cat)?.icon || 'fa-tags';
