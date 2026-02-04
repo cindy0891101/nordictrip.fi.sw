@@ -697,107 +697,131 @@ const settlement: Settlement = {
         </div>
       </Modal>
 
-      <Modal isOpen={showSettlement} onClose={() => setShowSettlement(false)} title="團隊還款計畫">
-        <div className="space-y-5 pb-2 max-h-[78vh] flex flex-col overflow-hidden">
-          <div className="space-y-3 flex-shrink-0">
-            <div className="flex justify-between items-center px-1">
-              <span className="text-[10px] font-bold text-earth-dark/40 uppercase tracking-widest">待處理還款</span>
-              <span className="text-[10px] font-bold text-earth-dark/30">點擊標記還清</span>
-            </div>
-            {settlementData.length === 0 ? (
-              <div className="py-10 border-2 border-dashed border-[#DED4C7] rounded-[2rem] flex items-center justify-center bg-white/10">
-                <span className="text-[10px] font-bold text-[#CEC4B7] italic tracking-tight">目前沒有新的欠帳</span>
+     <Modal isOpen={showSettlement} onClose={() => setShowSettlement(false)} title="團隊還款計畫">
+  {/* 🔽 整個 Modal 只有這裡能滑 */}
+  <div className="space-y-5 pb-4 max-h-[78vh] overflow-y-auto no-scrollbar">
+
+    {/* ===== 待處理還款 ===== */}
+    <div className="space-y-3">
+      <div className="flex justify-between items-center px-1">
+        <span className="text-[10px] font-bold text-earth-dark/40 uppercase tracking-widest">
+          待處理還款
+        </span>
+        <span className="text-[10px] font-bold text-earth-dark/30">
+          點擊標記還清
+        </span>
+      </div>
+
+      {settlementData.length === 0 ? (
+        <div className="py-10 border-2 border-dashed border-[#DED4C7] rounded-[2rem] flex items-center justify-center bg-white/10">
+          <span className="text-[10px] font-bold text-[#CEC4B7] italic tracking-tight">
+            目前沒有新的欠帳
+          </span>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {settlementData.map((rep, idx) => {
+            const from = members.find(m => m.id === rep.fromId);
+            const to = members.find(m => m.id === rep.toId);
+            return (
+              <div
+                key={idx}
+                onClick={() => markAsCleared(rep)}
+                className="bg-white py-3.5 px-5 rounded-[2rem] border border-[#DED4C7] flex items-center justify-between active:scale-95 transition-all cursor-pointer shadow-sm"
+              >
+                <div className="flex flex-col items-center gap-1 w-12">
+                  <img src={from?.avatar} className="w-9 h-9 rounded-full border border-[#E7DDD3]" alt="" />
+                  <span className="text-[9px] font-bold text-earth-dark truncate w-full text-center">
+                    {from?.name}
+                  </span>
+                </div>
+                <div className="flex-1 px-4 text-center">
+                  <div className="text-[15px] font-bold text-harbor mb-0.5">
+                    NT$ {Math.round(rep.amount).toLocaleString()}
+                  </div>
+                  <div className="flex items-center justify-center opacity-30">
+                    <div className="h-[1.5px] bg-paper flex-1"></div>
+                    <i className="fa-solid fa-chevron-right text-[7px] mx-1"></i>
+                    <div className="h-[1.5px] bg-paper flex-1"></div>
+                  </div>
+                </div>
+                <div className="flex flex-col items-center gap-1 w-12">
+                  <img src={to?.avatar} className="w-9 h-9 rounded-full border border-[#E7DDD3]" alt="" />
+                  <span className="text-[9px] font-bold text-earth-dark truncate w-full text-center">
+                    {to?.name}
+                  </span>
+                </div>
               </div>
-            ) : (
-              <div className="space-y-2">
-                {settlementData.map((rep, idx) => {
-                  const from = members.find(m => m.id === rep.fromId);
-                  const to = members.find(m => m.id === rep.toId);
-                  return (
-                    <div key={idx} onClick={() => markAsCleared(rep)} className="bg-white py-3.5 px-5 rounded-[2rem] border border-[#DED4C7] flex items-center justify-between active:scale-95 transition-all cursor-pointer shadow-sm">
-                      <div className="flex flex-col items-center gap-1 w-12">
-                        <img src={from?.avatar} className="w-9 h-9 rounded-full border border-[#E7DDD3]" alt="" />
-                        <span className="text-[9px] font-bold text-earth-dark truncate w-full text-center">{from?.name}</span>
-                      </div>
-                      <div className="flex-1 px-4 text-center">
-                        <div className="text-[15px] font-bold text-harbor mb-0.5">NT$ {Math.round(rep.amount).toLocaleString()}</div>
-                        <div className="flex items-center justify-center opacity-30">
-                          <div className="h-[1.5px] bg-paper flex-1"></div>
-                          <i className="fa-solid fa-chevron-right text-[7px] mx-1"></i>
-                          <div className="h-[1.5px] bg-paper flex-1"></div>
-                        </div>
-                      </div>
-                      <div className="flex flex-col items-center gap-1 w-12">
-                        <img src={to?.avatar} className="w-9 h-9 rounded-full border border-[#E7DDD3]" alt="" />
-                        <span className="text-[9px] font-bold text-earth-dark truncate w-full text-center">{to?.name}</span>
-                      </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+
+    {/* ===== 已完成紀錄 ===== */}
+    <div className="pt-4">
+      <div className="flex justify-between items-center px-1 mb-2">
+        <span className="text-[10px] font-bold text-earth-dark/40 uppercase tracking-widest">
+          已完成紀錄（點擊可撤銷）
+        </span>
+      </div>
+
+      {settlements.length === 0 ? (
+        <div className="py-6 text-center text-[10px] font-bold text-earth-dark/20 italic">
+          尚無歷史紀錄
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {settlements.flatMap(s =>
+            s.repayments.map((r, idx) => {
+              const from = members.find(m => m.id === r.fromId);
+              const to = members.find(m => m.id === r.toId);
+              return (
+                <div
+                  key={`${s.id}-${idx}`}
+                  onClick={() => undoSettlement(s.id)}
+                  className="bg-[#F5F1EB]/50 py-2.5 px-4 rounded-[1.75rem] border border-[#E5DFD6] flex items-center justify-between active:scale-95 transition-all cursor-pointer opacity-90"
+                >
+                  <div className="flex flex-col items-center gap-1 w-10">
+                    <img src={from?.avatar} className="w-7 h-7 rounded-full border border-white/50 grayscale opacity-40" alt="" />
+                    <span className="text-[8px] font-bold text-earth-dark/40">
+                      {from?.name}
+                    </span>
+                  </div>
+
+                  <div className="flex-1 text-center flex flex-col items-center justify-center">
+                    <div className="text-[11px] font-bold text-earth-dark/30 line-through mb-0.5">
+                      NT$ {Math.round(r.amount).toLocaleString()}
                     </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-          <div className="flex-grow overflow-hidden flex flex-col min-h-0">
-            <div className="flex justify-between items-center px-1 mb-3">
-              <span className="text-[10px] font-bold text-earth-dark/40 uppercase tracking-widest">已完成紀錄 (點擊可撤銷)</span>
-            </div>
-            <div className="flex-grow overflow-y-auto no-scrollbar space-y-2 pr-1 pb-2 max-h-[220px]">
-              {settlements.length === 0 ? (
-  <div className="py-6 text-center text-[10px] font-bold text-earth-dark/20 italic">
-    尚無歷史紀錄
+                    <div className="bg-[#E5DFD6]/60 px-3 py-0.5 rounded-full text-[8px] font-bold text-earth-dark/50 uppercase tracking-widest">
+                      已結清
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col items-center gap-1 w-10">
+                    <img src={to?.avatar} className="w-7 h-7 rounded-full border border-white/50 grayscale opacity-40" alt="" />
+                    <span className="text-[8px] font-bold text-earth-dark/40">
+                      {to?.name}
+                    </span>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      )}
+    </div>
+
+    {/* ===== 底部按鈕 ===== */}
+    <NordicButton
+      onClick={() => setShowSettlement(false)}
+      className="w-full h-14 bg-harbor text-white border-none shadow-xl rounded-2xl text-xs font-bold tracking-[0.2em] uppercase"
+    >
+      返回記帳本
+    </NordicButton>
+
   </div>
-) : (
-  settlements.flatMap(s =>
-    s.repayments.map((r, idx) => {
-      const from = members.find(m => m.id === r.fromId);
-      const to = members.find(m => m.id === r.toId);
-
-      return (
-        <div
-          key={`${s.id}-${idx}`}
-          onClick={() => undoSettlement(s.id)}
-          className="bg-[#F5F1EB]/50 py-2.5 px-4 rounded-[1.75rem] border border-[#E5DFD6] flex items-center justify-between active:scale-95 transition-all cursor-pointer group opacity-90"
-        >
-          <div className="flex flex-col items-center gap-1 w-10">
-            <img
-              src={from?.avatar}
-              className="w-7 h-7 rounded-full border border-white/50 grayscale opacity-40"
-              alt=""
-            />
-            <span className="text-[8px] font-bold text-earth-dark/40">
-              {from?.name}
-            </span>
-          </div>
-
-          <div className="flex-1 text-center flex flex-col items-center justify-center">
-            <div className="text-[11px] font-bold text-earth-dark/30 line-through mb-0.5 tracking-tight">
-              NT$ {Math.round(r.amount).toLocaleString()}
-            </div>
-            <div className="bg-[#E5DFD6]/60 px-3 py-0.5 rounded-full text-[8px] font-bold text-earth-dark/50 uppercase tracking-widest">
-              已結清
-            </div>
-          </div>
-
-          <div className="flex flex-col items-center gap-1 w-10">
-            <img
-              src={to?.avatar}
-              className="w-7 h-7 rounded-full border border-white/50 grayscale opacity-40"
-              alt=""
-            />
-            <span className="text-[8px] font-bold text-earth-dark/40">
-              {to?.name}
-            </span>
-          </div>
-        </div>
-      );
-    })
-  )
-)}
-            </div>
-          </div>
-          <NordicButton onClick={() => setShowSettlement(false)} className="w-full h-14 bg-harbor text-white border-none shadow-xl rounded-2xl flex-shrink-0 text-xs font-bold tracking-[0.2em] uppercase">返回記帳本</NordicButton>
-        </div>
-      </Modal>
+</Modal>
 
       <Modal isOpen={showAdd || showEdit} onClose={() => { setShowAdd(false); setShowEdit(false); }} title={showEdit ? "修改支出內容" : "記帳一筆支出"}>
         <div className="space-y-5 pb-6 overflow-x-hidden">
