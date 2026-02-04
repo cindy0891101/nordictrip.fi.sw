@@ -144,8 +144,8 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ members }) => {
   const totalTeamExpense = useMemo(() => {
     return Math.round(expenses.reduce((acc, exp) => {
       if (members.length > 0 && exp.splitWith.length === members.length) {
-        const rate = currencyRates[exp.currency] || 1;
-        return acc + (exp.amount * rate);
+        if (exp.currency !== activeCurrency) return acc;
+        return acc + exp.amount;
       }
       return acc;
     }, 0));
@@ -197,21 +197,34 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ members }) => {
     members.forEach(m => balances[m.id] = 0);
 
     expenses.forEach(exp => {
-      const rate = currencyRates[exp.currency] || 1;
-      const amountTwd = exp.amount * rate;
-      if (balances[exp.payerId] !== undefined) balances[exp.payerId] += amountTwd;
-      const share = amountTwd / exp.splitWith.length;
+      if (exp.currency !== activeCurrency) return;
+    
+      const amount = exp.amount;
+    
+      if (balances[exp.payerId] !== undefined) {
+        balances[exp.payerId] += amount;
+      }
+    
+      const share = amount / exp.splitWith.length;
       exp.splitWith.forEach(id => {
-        if (balances[id] !== undefined) balances[id] -= share;
+        if (balances[id] !== undefined) {
+          balances[id] -= share;
+        }
       });
     });
-
     settlements.forEach(settlement => {
-    settlement.repayments.forEach(r => {
-    if (balances[r.fromId] !== undefined) balances[r.fromId] += r.amount;
-    if (balances[r.toId] !== undefined) balances[r.toId] -= r.amount;
-     });
-  });
+      settlement.repayments.forEach(r => {
+        // 找對應的 expense（GLOBAL 取第一筆即可）
+        const relatedExpense = settlement.type === 'EXPENSE'
+          ? expenses.find(e => settlement.expenseIds?.includes(e.id))
+          : expenses.find(e => e.id === r.toId || e.id === r.fromId);
+    
+        if (!relatedExpense || relatedExpense.currency !== activeCurrency) return;
+    
+        if (balances[r.fromId] !== undefined) balances[r.fromId] += r.amount;
+        if (balances[r.toId] !== undefined) balances[r.toId] -= r.amount;
+      });
+    });
 
     return balances;
   }, [expenses, settlements, members, currencyRates]);
@@ -397,9 +410,7 @@ const settlement: Settlement = {
 
   if (currentBalances[memberId] >= -0.1) return;
 
-  const rate = currencyRates[exp.currency] || 1;
-  const share = (exp.amount * rate) / exp.splitWith.length;
-
+  const share = exp.amount / exp.splitWith.length;
   const settlement: Settlement = {
     id: Date.now().toString(),
     type: 'EXPENSE',
@@ -905,8 +916,7 @@ const settlement: Settlement = {
                     const isSettled = isMemberSettledForExpense(selectedExpense.id, id);
                     const isCoveredByGlobalSettlement =!isSettled && settledExpenseIdSet.has(selectedExpense.id);
                     const isCurrentlyZeroDebt = !isSettled && currentBalances[id] >= -0.1;
-                    const rate = currencyRates[selectedExpense.currency] || 1;
-                    const shareTwd = Math.round((selectedExpense.amount * rate) / selectedExpense.splitWith.length);
+                    const share = Math.round(selectedExpense.amount / selectedExpense.splitWith.length);
                     const mutedStatusClass ="bg-white/40 px-3 py-1.5 rounded-full text-[9px] font-bold text-earth-dark/40 border border-paper/10";
                     return (
                       <div key={id} className={`flex justify-between items-center p-4 rounded-[1.75rem] border-2 transition-all ${isPayer ? 'bg-paper/5 border-paper/20' : (isSettled || isCoveredByGlobalSettlement || isCurrentlyZeroDebt) ? 'bg-white/40 border-paper/10 opacity-60' : 'bg-white border-paper/10 shadow-sm'}`}>
@@ -914,7 +924,7 @@ const settlement: Settlement = {
                           <img src={m?.avatar} className="w-9 h-9 rounded-full border border-paper/20" alt="" />
                           <div className="flex flex-col">
                             <span className="text-xs font-bold text-sage">{m?.name}</span>
-                            <span className="text-[9px] font-bold text-earth-dark/60">{isPayer ? '自付份額' : `應付 NT$ ${shareTwd.toLocaleString()}`}</span>
+                            <span className="text-[9px] font-bold text-earth-dark/60">{isPayer ? '自付份額' : `應付 {selectedExpense.currency}{shareTwd.toLocaleString()}`}</span>
                           </div>
                         </div>
                         <div>
