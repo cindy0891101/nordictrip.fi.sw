@@ -25,7 +25,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyChx0Ro7ArYxM1CQcBf41mq63p4AEVWZC4",
   authDomain: "fi-travel.firebaseapp.com",
   projectId: "fi-travel",
-  storageBucket: "fi-travel.appspot.com",
+  storageBucket: "fi-travel.firebasestorage.app",
   messagingSenderId: "158292900207",
   appId: "1:158292900207:web:40d53c028906d66b88109a",
 };
@@ -105,6 +105,7 @@ export const dbService = {
     }
   },
 };
+
 
 
 
