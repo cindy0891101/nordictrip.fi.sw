@@ -39,6 +39,10 @@ export const storage = getStorage(app);
 
 const auth = getAuth(app);
 
+async function ensureAuthReady(): Promise<void> {
+  if (auth.currentUser) return;
+  await signInAnonymously(auth);
+}
 enableIndexedDbPersistence(db).catch((err) => {
   console.warn('IndexedDB persistence failed:', err.code);
 });
@@ -48,9 +52,7 @@ export async function uploadMemberAvatar(
   file: File,
   currentMembers: Member[]
 ) {
-  alert(`🔥 Firebase project: ${app.options.projectId}`);
-  //await ensureAuthReady();
-
+  await ensureAuthReady();
   // 🔥 新增：壓縮 + 轉 JPEG
   const safeFile = await compressImage(file);
 
@@ -106,6 +108,7 @@ export const dbService = {
     }
   },
 };
+
 
 
 
