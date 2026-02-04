@@ -43,18 +43,6 @@ enableIndexedDbPersistence(db).catch((err) => {
   console.warn('IndexedDB persistence failed:', err.code);
 });
 
-async function ensureAuthReady(): Promise<void> {
-  return new Promise((resolve) => {
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        resolve();
-      } else {
-        signInAnonymously(auth);
-      }
-    });
-  });
-}
-
 export async function uploadMemberAvatar(
   memberId: string,
   file: File,
@@ -117,6 +105,7 @@ export const dbService = {
     }
   },
 };
+
 
 
 
