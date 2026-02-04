@@ -12,10 +12,12 @@ import {
   signInAnonymously,
   onAuthStateChanged,
 } from 'firebase/auth';
-import { getStorage,
-         ref,
-         uploadBytes,
-         getDownloadURL} from 'firebase/storage';
+import {
+  getStorage,
+  ref,
+  uploadBytes,
+  getDownloadURL,
+} from 'firebase/storage';
 
 const firebaseConfig = {
   apiKey: "AIzaSyChx0Ro7ArYxM1CQcBf41mq63p4AEVWZC4",
@@ -29,19 +31,28 @@ const firebaseConfig = {
 const DEFAULT_TRIP_ID = 'trip_2025_nordic_master';
 
 const app = initializeApp(firebaseConfig);
+
 const db = getFirestore(app);
 export const storage = getStorage(app);
+
+const auth = getAuth(app);
 
 enableIndexedDbPersistence(db).catch((err) => {
   console.warn('IndexedDB persistence failed:', err.code);
 });
-async function ensureAuthReady() {
-  return new Promise<void>((resolve) => {
+
+async function ensureAuthReady(): Promise<void> {
+  return new Promise((resolve) => {
     onAuthStateChanged(auth, (user) => {
-      if (user) resolve();
+      if (user) {
+        resolve();
+      } else {
+        signInAnonymously(auth);
+      }
     });
   });
 }
+
 export async function uploadMemberAvatar(memberId: string, file: File) {
   await ensureAuthReady();
 
@@ -50,14 +61,13 @@ export async function uploadMemberAvatar(memberId: string, file: File) {
 
   const url = await getDownloadURL(avatarRef);
 
-  await updateDoc(doc(db, 'trips', DEFAULT_TRIP_ID, 'members', memberId)), {
-    avatar: url
-  });
+  await updateDoc(
+    doc(db, 'trips', DEFAULT_TRIP_ID, 'members', memberId),
+    { avatar: url }
+  );
 
   return url;
 }
-
-const auth = getAuth(app);
 
 export const dbService = {
   initAuth: () =>
@@ -83,5 +93,4 @@ export const dbService = {
       await setDoc(ref, { [field]: value }, { merge: true });
     }
   },
-
 };
