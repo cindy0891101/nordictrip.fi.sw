@@ -18,6 +18,7 @@ import {
   uploadBytes,
   getDownloadURL,
 } from 'firebase/storage';
+import type { Member } from './types';
 
 const firebaseConfig = {
   apiKey: "AIzaSyChx0Ro7ArYxM1CQcBf41mq63p4AEVWZC4",
@@ -101,4 +102,5 @@ export const dbService = {
     }
   },
 };
+
 
