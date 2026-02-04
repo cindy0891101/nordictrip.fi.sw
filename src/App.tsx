@@ -6,8 +6,9 @@ import ExpenseView from './views/ExpenseView';
 import PlanningView from './views/PlanningView';
 import MembersView from './views/MembersView';
 import { Modal, NordicButton } from './components/Shared';
-import type{ Member } from './types';
+import type { Member } from './types';
 import { dbService } from './firebaseService';
+import { uploadMemberAvatar } from './firebaseService';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'schedule' | 'bookings' | 'expense' | 'planning' | 'members'>('schedule');
@@ -79,9 +80,9 @@ const App: React.FC = () => {
     saveMembersToCloud(nextMembers);
   };
 
-  const updateMemberAvatar = (id: string, avatar: string) => {
-    saveMembersToCloud(members.map(m => m.id === id ? { ...m, avatar } : m));
-  };
+  const updateMemberAvatar = async (id: string, file: File) => {
+  await uploadMemberAvatar(id, file);
+};
 
   const updateMemberInfo = (id: string, name: string, title: string) => {
     saveMembersToCloud(members.map(m => m.id === id ? { ...m, name, title } : m));
