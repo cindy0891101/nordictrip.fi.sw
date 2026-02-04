@@ -53,7 +53,6 @@ const MembersView: React.FC<MembersViewProps> = ({
 
 
 const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  alert('📸 已選擇照片');
 
   const file = e.target.files?.[0];
   const memberId = e.currentTarget.dataset.memberId;
