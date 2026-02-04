@@ -48,6 +48,7 @@ export async function uploadMemberAvatar(
   file: File,
   currentMembers: Member[]
 ) {
+  alert(`🔥 Firebase project: ${app.options.projectId}`);
   //await ensureAuthReady();
 
   // 🔥 新增：壓縮 + 轉 JPEG
@@ -105,6 +106,7 @@ export const dbService = {
     }
   },
 };
+
 
 
 
