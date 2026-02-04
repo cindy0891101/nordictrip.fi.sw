@@ -81,7 +81,18 @@ const App: React.FC = () => {
   };
 
   const updateMemberAvatar = async (id: string, file: File) => {
-  await uploadMemberAvatar(id, file, members);
+  alert('🚀 開始上傳到 Firebase');
+
+  const url = await uploadMemberAvatar(id, file, members);
+
+  alert('✅ Firebase 回傳圖片網址');
+
+  // ⭐ 關鍵：立刻更新本地 members，UI 才會動
+  setMembers(prev =>
+    prev.map(m =>
+      m.id === id ? { ...m, avatar: url } : m
+    )
+  );
 };
 
   const updateSharedDriveUrl = (url: string) => {
