@@ -907,6 +907,7 @@ const settlement: Settlement = {
                     const isCurrentlyZeroDebt = !isSettled && currentBalances[id] >= -0.1;
                     const rate = currencyRates[selectedExpense.currency] || 1;
                     const shareTwd = Math.round((selectedExpense.amount * rate) / selectedExpense.splitWith.length);
+                    const mutedStatusClass ="bg-white/40 px-3 py-1.5 rounded-full text-[9px] font-bold text-earth-dark/40 border border-paper/10";
                     return (
                       <div key={id} className={`flex justify-between items-center p-4 rounded-[1.75rem] border-2 transition-all ${isPayer ? 'bg-paper/5 border-paper/20' : (isSettled || isCoveredByGlobalSettlement || isCurrentlyZeroDebt) ? 'bg-white/40 border-paper/10 opacity-60' : 'bg-white border-paper/10 shadow-sm'}`}>
                         <div className="flex items-center gap-3">
@@ -918,21 +919,27 @@ const settlement: Settlement = {
                         </div>
                         <div>
                           {isPayer ? (
-                                <i className="fa-solid fa-crown ..." />
+                                <i className="fa-solid fa-crown text-yellow-500/40 text-xs mr-2"></i>
                               ) : isSettled ? (
-                                <button onClick={() => toggleMemberSettled(selectedExpense, id)}>
+                                <button
+                                  onClick={() => toggleMemberSettled(selectedExpense, id)}
+                                  className="bg-paper/20 px-3 py-1.5 rounded-full text-[9px] font-bold text-earth-dark"
+                                >
                                   已結清
                                 </button>
                               ) : isCoveredByGlobalSettlement ? (
-                                <button disabled>
+                                <span className={mutedStatusClass}>
                                   已隨總額結清
-                                </button>
+                                </span>
                               ) : isCurrentlyZeroDebt ? (
-                                <button disabled>
+                                <span className={mutedStatusClass}>
                                   無需付款
-                                </button>
+                                </span>
                               ) : (
-                                <button onClick={() => toggleMemberSettled(selectedExpense, id)}>
+                                <button
+                                  onClick={() => toggleMemberSettled(selectedExpense, id)}
+                                  className="bg-harbor/10 px-3 py-1.5 rounded-full text-[9px] font-bold text-harbor"
+                                >
                                   標記結清
                                 </button>
                               )}
