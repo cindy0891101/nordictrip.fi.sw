@@ -53,17 +53,24 @@ async function ensureAuthReady(): Promise<void> {
   });
 }
 
-export async function uploadMemberAvatar(memberId: string, file: File) {
+export async function uploadMemberAvatar(
+  memberId: string,
+  file: File,
+  currentMembers: Member[]
+) {
   await ensureAuthReady();
 
   const avatarRef = ref(storage, `avatars/${memberId}.jpg`);
   await uploadBytes(avatarRef, file);
-
   const url = await getDownloadURL(avatarRef);
 
+  const updatedMembers = currentMembers.map(m =>
+    m.id === memberId ? { ...m, avatar: url } : m
+  );
+
   await updateDoc(
-    doc(db, 'trips', DEFAULT_TRIP_ID, 'members', memberId),
-    { avatar: url }
+    doc(db, 'trips', DEFAULT_TRIP_ID),
+    { members: updatedMembers }
   );
 
   return url;
@@ -94,3 +101,4 @@ export const dbService = {
     }
   },
 };
+
