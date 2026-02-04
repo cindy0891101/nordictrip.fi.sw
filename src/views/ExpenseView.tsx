@@ -96,6 +96,7 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ members }) => {
   const [settlements, setSettlements] = useState<Settlement[]>([]);
   const [currencyRates, setCurrencyRates] = useState<Record<string, number>>(INITIAL_CURRENCIES);
   const [lastSyncTime, setLastSyncTime] = useState<string>('');
+  const [activeCurrency, setActiveCurrency] = useState<string>('TWD');
 
   useEffect(() => {
     const unsubExp = dbService.subscribeField('expenses', (data) => setExpenses(data || []));
@@ -916,7 +917,6 @@ const settlement: Settlement = {
                     const isSettled = isMemberSettledForExpense(selectedExpense.id, id);
                     const isCoveredByGlobalSettlement =!isSettled && settledExpenseIdSet.has(selectedExpense.id);
                     const isCurrentlyZeroDebt = !isSettled && currentBalances[id] >= -0.1;
-                    const share = Math.round(selectedExpense.amount / selectedExpense.splitWith.length);
                     const mutedStatusClass ="bg-white/40 px-3 py-1.5 rounded-full text-[9px] font-bold text-earth-dark/40 border border-paper/10";
                     return (
                       <div key={id} className={`flex justify-between items-center p-4 rounded-[1.75rem] border-2 transition-all ${isPayer ? 'bg-paper/5 border-paper/20' : (isSettled || isCoveredByGlobalSettlement || isCurrentlyZeroDebt) ? 'bg-white/40 border-paper/10 opacity-60' : 'bg-white border-paper/10 shadow-sm'}`}>
