@@ -6,7 +6,7 @@ import type{ Member } from '../types';
 interface MembersViewProps {
   members: Member[];
   onAddMember: (name: string) => void;
-  onUpdateAvatar: (id: string, avatar: string) => void;
+  onUpdateAvatar(id: string, file: File) => void;
   onDeleteMember: (id: string) => void;
   onUpdateMemberInfo: (id: string, name: string, title: string) => void;
   isEditMode: boolean;
@@ -57,18 +57,14 @@ const MembersView: React.FC<MembersViewProps> = ({
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && currentEditId) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        onUpdateAvatar(currentEditId, reader.result as string);
-        setCurrentEditId(null);
-        e.target.value = '';
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (file && currentEditId) {
+    onUpdateAvatar(currentEditId, file);
+    setCurrentEditId(null);
+    e.target.value = '';
+  }
+};
 
   const handleDriveClick = () => {
     if (driveUrl) {
