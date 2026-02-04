@@ -60,7 +60,7 @@ export async function uploadMemberAvatar(
   file: File,
   currentMembers: Member[]
 ) {
-  await ensureAuthReady();
+  //await ensureAuthReady();
 
   // 🔥 新增：壓縮 + 轉 JPEG
   const safeFile = await compressImage(file);
@@ -117,6 +117,7 @@ export const dbService = {
     }
   },
 };
+
 
 
 
