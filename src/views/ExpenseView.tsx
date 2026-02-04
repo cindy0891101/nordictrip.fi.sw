@@ -14,7 +14,8 @@ interface Repayment {
 interface Settlement {
   id: string;
   type: 'GLOBAL' | 'EXPENSE';
-  expenseIds?: string[]; // ⬅️ 改成 optional
+  currency: string;        // ⭐ 新增
+  expenseIds?: string[];
   repayments: Repayment[];
   createdAt: string;
 }
@@ -135,12 +136,12 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ members }) => {
     date: new Date().toISOString().split('T')[0]
   });
   const settledExpenseIdSet = useMemo(() => {
-  const set = new Set<string>();
-  settlements
-    .filter(s => s.type === 'GLOBAL')
-    .forEach(s => s.expenseIds?.forEach(id => set.add(id)));
-  return set;
-}, [settlements]);
+    const set = new Set<string>();
+    settlements
+      .filter(s => s.type === 'GLOBAL' && s.currency === activeCurrency)
+      .forEach(s => s.expenseIds?.forEach(id => set.add(id)));
+    return set;
+  }, [settlements, activeCurrency]);
 
   const totalTeamExpense = useMemo(() => {
     return Math.round(expenses.reduce((acc, exp) => {
@@ -158,6 +159,7 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ members }) => {
 
     if (analysisMemberId === 'TEAM') {
       expenses.forEach(exp => {
+        if (exp.currency !== activeCurrency) return;
         if (exp.splitWith.length === members.length) {
           const rate = currencyRates[exp.currency] || 1;
           const val = exp.amount * rate;
@@ -169,6 +171,7 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ members }) => {
       });
     } else {
       expenses.forEach(exp => {
+        if (exp.currency !== activeCurrency) return;
         if (exp.splitWith.includes(analysisMemberId)) {
           const rate = currencyRates[exp.currency] || 1;
           const share = (exp.amount * rate) / exp.splitWith.length;
@@ -213,19 +216,14 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ members }) => {
         }
       });
     });
-    settlements.forEach(settlement => {
-      settlement.repayments.forEach(r => {
-        // 找對應的 expense（GLOBAL 取第一筆即可）
-        const relatedExpense = settlement.type === 'EXPENSE'
-          ? expenses.find(e => settlement.expenseIds?.includes(e.id))
-          : expenses.find(e => e.id === r.toId || e.id === r.fromId);
-    
-        if (!relatedExpense || relatedExpense.currency !== activeCurrency) return;
-    
-        if (balances[r.fromId] !== undefined) balances[r.fromId] += r.amount;
-        if (balances[r.toId] !== undefined) balances[r.toId] -= r.amount;
-      });
+    settlements
+  .filter(s => s.currency === activeCurrency)
+  .forEach(settlement => {
+    settlement.repayments.forEach(r => {
+      balances[r.fromId] += r.amount;
+      balances[r.toId] -= r.amount;
     });
+  });
 
     return balances;
   }, [expenses, settlements, members, currencyRates]);
@@ -382,6 +380,7 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ members }) => {
 const settlement: Settlement = {
   id: Date.now().toString(),
   type: 'GLOBAL',
+  currency: activeCurrency,   // ⭐⭐⭐
   repayments: [repayment],
   createdAt: new Date().toISOString(),
 };
@@ -413,16 +412,16 @@ const settlement: Settlement = {
 
   const share = exp.amount / exp.splitWith.length;
   const settlement: Settlement = {
-    id: Date.now().toString(),
-    type: 'EXPENSE',
-    expenseIds: [exp.id],
-    repayments: [{
-      fromId: memberId,
-      toId: exp.payerId,
-      amount: share,
-    }],
-    createdAt: new Date().toISOString(),
-  };
+  id: Date.now().toString(),
+  type: 'EXPENSE',
+  currency: exp.currency,     // ⭐⭐⭐
+  expenseIds: [exp.id],
+  repayments: [{
+    fromId: memberId,
+    toId: exp.payerId,
+    amount: share,}],
+  createdAt: new Date().toISOString(),
+};
 
   dbService.updateField('settlements', [
     settlement,
@@ -612,7 +611,9 @@ const settlement: Settlement = {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-xs font-bold text-sage">NT$ {cat.value.toLocaleString()}</div>
+                      <div className="text-xs font-bold text-sage">
+                        {activeCurrency} {cat.value.toLocaleString()}
+                      </div>
                       <div className="text-[8px] font-bold text-earth-dark/40 uppercase tracking-widest">{cat.items.length} 筆明細</div>
                     </div>
                   </div>
@@ -627,8 +628,8 @@ const settlement: Settlement = {
                           <div className="text-right">
                             <div className="text-sage">
                               {analysisMemberId === 'TEAM' 
-                                ? `NT$ ${Math.round(item.amount * (currencyRates[item.currency] || 1)).toLocaleString()}`
-                                : `NT$ ${Math.round((item.amount * (currencyRates[item.currency] || 1)) / item.splitWith.length).toLocaleString()}`
+                                ? `${activeCurrency} ${Math.round(item.amount).toLocaleString()}`
+                                : `${activeCurrency} ${Math.round(item.amount / item.splitWith.length).toLocaleString()}`
                               }
                             </div>
                             <div className="text-[7px] text-earth-dark/40">{item.currency} {item.amount.toLocaleString()}</div>
@@ -769,7 +770,7 @@ const settlement: Settlement = {
                 </div>
                 <div className="flex-1 px-4 text-center">
                   <div className="text-[15px] font-bold text-harbor mb-0.5">
-                    NT$ {Math.round(rep.amount).toLocaleString()}
+                    {activeCurrency} {Math.round(rep.amount).toLocaleString()}
                   </div>
                   <div className="flex items-center justify-center opacity-30">
                     <div className="h-[1.5px] bg-paper flex-1"></div>
@@ -938,13 +939,16 @@ const settlement: Settlement = {
                     const isCoveredByGlobalSettlement =!isSettled && settledExpenseIdSet.has(selectedExpense.id);
                     const isCurrentlyZeroDebt = !isSettled && currentBalances[id] >= -0.1;
                     const mutedStatusClass ="bg-white/40 px-3 py-1.5 rounded-full text-[9px] font-bold text-earth-dark/40 border border-paper/10";
+                    const shareTwd =selectedExpense.amount / selectedExpense.splitWith.length;
                     return (
                       <div key={id} className={`flex justify-between items-center p-4 rounded-[1.75rem] border-2 transition-all ${isPayer ? 'bg-paper/5 border-paper/20' : (isSettled || isCoveredByGlobalSettlement || isCurrentlyZeroDebt) ? 'bg-white/40 border-paper/10 opacity-60' : 'bg-white border-paper/10 shadow-sm'}`}>
                         <div className="flex items-center gap-3">
                           <img src={m?.avatar} className="w-9 h-9 rounded-full border border-paper/20" alt="" />
                           <div className="flex flex-col">
                             <span className="text-xs font-bold text-sage">{m?.name}</span>
-                            <span className="text-[9px] font-bold text-earth-dark/60">{isPayer ? '自付份額' : `應付 {selectedExpense.currency}{shareTwd.toLocaleString()}`}</span>
+                            <span className="text-[9px] font-bold text-earth-dark/60">
+                              應付 {selectedExpense.currency} {shareTwd.toLocaleString()}
+                            </span>
                           </div>
                         </div>
                         <div>
