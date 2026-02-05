@@ -598,8 +598,16 @@ const settlement: Settlement = {
           </div>
           <div className="flex flex-col items-center py-4 bg-white/40 rounded-[3rem] border border-paper/20 shadow-inner">
             <DonutChart
-  currency={activeCurrency}
-  data={analysisData.chartData.map(d => ({ label: d.label, value: d.value, color: d.color }))} />
+              currency="NT$"
+              data={analysisData.chartData.map(d => ({
+                label: d.label,
+                value: d.value,
+                color: d.color
+              }))}
+            />
+            <span className="mt-2 text-[9px] text-earth-dark/40 italic">
+                * 分析金額已統一換算為台幣顯示
+              </span>
           </div>
           <div className="space-y-2 max-h-[300px] overflow-y-auto no-scrollbar pr-1">
             {analysisData.chartData.length === 0 ? (
@@ -619,7 +627,7 @@ const settlement: Settlement = {
                     </div>
                     <div className="text-right">
                       <div className="text-xs font-bold text-sage">
-                        {activeCurrency} {cat.value.toLocaleString()}
+                        NT$ {cat.value.toLocaleString()}
                       </div>
                       <div className="text-[8px] font-bold text-earth-dark/40 uppercase tracking-widest">{cat.items.length} 筆明細</div>
                     </div>
@@ -634,10 +642,40 @@ const settlement: Settlement = {
                           </div>
                           <div className="text-right">
                             <div className="text-sage">
-                              {analysisMemberId === 'TEAM' 
-                                ? `${activeCurrency} ${Math.round(item.amount).toLocaleString()}`
-                                : `${activeCurrency} ${Math.round(item.amount / item.splitWith.length).toLocaleString()}`
-                              }
+                              {(() => {
+                                  const rate = currencyRates[item.currency] || 1;
+                                
+                                  const rawShare =
+                                    analysisMemberId === 'TEAM'
+                                      ? item.amount
+                                      : item.amount / item.splitWith.length;
+                                
+                                  const twdValue = Math.round(rawShare * rate);
+                                  const isConverted = item.currency !== 'TWD';
+                                
+                                  return (
+                                    <>
+                                      <div className="flex items-center justify-end gap-1.5">
+                                        {isConverted && (
+                                          <span className="
+                                            px-1.5 py-0.5
+                                            rounded-full
+                                            text-[8px]
+                                            font-bold
+                                            bg-paper/40
+                                            text-earth-dark/60
+                                            tracking-tight
+                                          ">
+                                            ≈
+                                          </span>
+                                        )}
+                                        <span className="text-sage">
+                                          NT$ {twdValue.toLocaleString()}
+                                        </span>
+                                      </div> 
+                                    </>
+                                  );
+                                })()}
                             </div>
                             <div className="text-[7px] text-earth-dark/40">{item.currency} {item.amount.toLocaleString()}</div>
                           </div>
