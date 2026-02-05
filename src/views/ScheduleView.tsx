@@ -336,6 +336,12 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ isEditMode, onToggleLock })
               className={`bg-white rounded-[2rem] p-6 shadow-md border-2 border-paper/30 ${isEditMode ? 'hover:border-harbor/40 cursor-pointer' : ''} transition-all flex justify-between items-center`}
             >
               <div className="flex-grow space-y-1 pl-2">
+                {item.driveMinutes !== undefined && (
+                  <div className="text-[10px] font-bold text-earth-dark flex items-center gap-1 mt-1">
+                    <i className="fa-solid fa-car-side text-[11px]"></i>
+                    <span>車程 {item.driveMinutes} 分鐘</span>
+                  </div>
+                )}
                 <div className="text-sm font-bold text-earth-dark tracking-wide">{item.time}</div>
                 <h4 className="text-xl font-bold text-ink leading-tight">{item.location}</h4>
                  {item.address && (<div onClick={(e) => { e.stopPropagation();openInGoogleMaps(item.address!)  }}
@@ -505,6 +511,34 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ isEditMode, onToggleLock })
   />
 </div>
              <div className="space-y-2"><label className="text-[10px] font-bold text-earth-dark uppercase pl-1">預計時間</label><input type="time" value={editingItem.time} onChange={(e) => setEditingItem({...editingItem, time: e.target.value})} className="w-full h-[56px] p-5 bg-white border-2 border-paper rounded-[2rem] font-bold text-ink shadow-sm text-center" /></div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold text-earth-dark uppercase pl-1">
+                車程（分鐘）
+              </label>
+            
+              <div className="relative">
+                <input
+                  type="number"
+                  min={0}
+                  step={5}
+                  value={editingItem.driveMinutes ?? ''}
+                  onChange={(e) =>
+                    setEditingItem({
+                      ...editingItem,
+                      driveMinutes: e.target.value === ''
+                        ? undefined
+                        : Number(e.target.value),
+                    })
+                  }
+                  placeholder="例如：30"
+                  className="w-full h-[56px] p-5 pr-14 bg-white border-2 border-paper rounded-[2rem] font-bold text-ink shadow-sm text-center"
+                />
+            
+                <span className="absolute right-5 top-1/2 -translate-y-1/2 text-xs font-bold text-earth-dark opacity-60">
+                  分
+                </span>
+              </div>
+            </div>
             <div className="space-y-2">
               <label className="text-[10px] font-bold text-earth-dark uppercase pl-1">行程類別</label>
               <div className="grid grid-cols-6 gap-2 p-2 bg-white border-2 border-paper rounded-[1.5rem] shadow-sm">
