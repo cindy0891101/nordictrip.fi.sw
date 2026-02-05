@@ -140,14 +140,6 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ members }) => {
     payerId: '', splitWith: [] as string[],
     date: new Date().toISOString().split('T')[0]
   });
-  const settledExpenseIdSet = useMemo(() => {
-    const set = new Set<string>();
-    settlements
-      .filter(s => s.type === 'GLOBAL' && s.currency === activeCurrency)
-      .forEach(s => s.expenseIds?.forEach(id => set.add(id)));
-    return set;
-  }, [settlements, activeCurrency]);
-
   const totalTeamExpense = useMemo(() => {
     return Math.round(expenses.reduce((acc, exp) => {
       if (members.length > 0 && exp.splitWith.length === members.length) {
@@ -1000,31 +992,27 @@ const settlement: Settlement = {
                           </div>
                         </div>
                         <div>
-                          {isPayer ? (
-                                <i className="fa-solid fa-crown text-yellow-500/40 text-xs mr-2"></i>
-                              ) : isSettled ? (
-                                <button
-                                  onClick={() => toggleMemberSettled(selectedExpense, id)}
-                                  className="bg-paper/20 px-3 py-1.5 rounded-full text-[9px] font-bold text-earth-dark"
-                                >
-                                  已結清
-                                </button>
-                              ) : isCoveredByGlobalSettlement ? (
-                                <span className={mutedStatusClass}>
-                                  已隨總額結清
-                                </span>
-                              ) : isCurrentlyZeroDebt ? (
-                                <span className={mutedStatusClass}>
-                                  無需付款
-                                </span>
-                              ) : (
-                                <button
-                                  onClick={() => toggleMemberSettled(selectedExpense, id)}
-                                  className="bg-harbor/10 px-3 py-1.5 rounded-full text-[9px] font-bold text-harbor"
-                                >
-                                  標記結清
-                                </button>
-                              )}
+                            {isPayer ? (
+                              <i className="fa-solid fa-crown text-yellow-500/40 text-xs mr-2"></i>
+                            ) : isSettled ? (
+                              <button
+                                onClick={() => toggleMemberSettled(selectedExpense, id)}
+                                className="bg-paper/20 px-3 py-1.5 rounded-full text-[9px] font-bold text-earth-dark"
+                              >
+                                已結清
+                              </button>
+                            ) : currentBalances[id] >= -0.1 ? (
+                              <span className={mutedStatusClass}>
+                                無需付款
+                              </span>
+                            ) : (
+                              <button
+                                onClick={() => toggleMemberSettled(selectedExpense, id)}
+                                className="bg-harbor/10 px-3 py-1.5 rounded-full text-[9px] font-bold text-harbor"
+                              >
+                                標記結清
+                              </button>
+                            )}
                         </div>
                       </div>
                     );
