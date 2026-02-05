@@ -141,17 +141,20 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ members }) => {
     date: new Date().toISOString().split('T')[0]
   });
   const totalTeamExpense = useMemo(() => {
-    return Math.round(expenses.reduce((acc, exp) => {
+  return Math.round(
+    expenses.reduce((acc, exp) => {
       if (members.length > 0 && exp.splitWith.length === members.length) {
         if (exp.currency !== activeCurrency) return acc;
         return acc + exp.amount;
       }
-  }, [expenses, members, activeCurrency]);
-     const expenseCountByCurrency = useMemo(() => {
-      return expenses.filter(exp => exp.currency === activeCurrency).length;
-    }, [expenses, activeCurrency]);
       return acc;
-    }, 0));
+    }, 0)
+  );
+}, [expenses, members, activeCurrency]);
+
+const expenseCountByCurrency = useMemo(() => {
+  return expenses.filter(exp => exp.currency === activeCurrency).length;
+}, [expenses, activeCurrency]);
 
   const analysisData = useMemo(() => {
 const categoriesSum: Record<string, { total: number; items: Expense[] }> = {};
