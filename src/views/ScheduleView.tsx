@@ -5,6 +5,15 @@ import { Modal, NordicButton } from '../components/Shared';
 import { MOCK_WEATHER, CATEGORY_COLORS } from '../constants';
 import type{ ScheduleItem, Category, WeatherInfo } from '../types';
 import { dbService } from '../firebaseService';
+import {
+  Car,
+  Utensils,
+  Camera,
+  Bed,
+  Star,
+  ShoppingBag,
+  MapPin
+} from 'lucide-react';
 
 interface ExtendedWeatherInfo extends WeatherInfo {
   feelsLike: number;
@@ -234,17 +243,24 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ isEditMode, onToggleLock })
   const currentDayData = selectedDate ? (fullSchedule[selectedDate] || { items: [], metadata: { locationName: '未設定', forecast: [], isLive: false } }) : null;
   if (!currentDayData) return null;
 
-  const getCategoryIcon = (category: Category) => {
-    switch(category) {
-      case 'Transport': return 'fa-car'; 
-      case 'Food': return 'fa-utensils';
-      case 'Attraction': return 'fa-camera';
-      case 'Accommodation': return 'fa-bed';
-      case 'Activity': return 'fa-star'; 
-      case 'Shopping': return 'fa-bag-shopping'; 
-      default: return 'fa-location-dot';
-    }
-  };
+export function getIconComponent(type: string) {
+  switch (type) {
+    case 'Transport':
+      return <Car size={18} strokeWidth={1.75} />;
+    case 'Food':
+      return <Utensils size={18} strokeWidth={1.75} />;
+    case 'Attraction':
+      return <Camera size={18} strokeWidth={1.75} />;
+    case 'Accommodation':
+      return <Bed size={18} strokeWidth={1.75} />;
+    case 'Activity':
+      return <Star size={18} strokeWidth={1.75} />;
+    case 'Shopping':
+      return <ShoppingBag size={18} strokeWidth={1.75} />;
+    default:
+      return <MapPin size={18} strokeWidth={1.75} />;
+  }
+}
 
   const getWeatherDisplay = (condition: string, hour: string, temp: number) => {
     if (temp < 0) return 'fa-snowflake text-blue-400 drop-shadow-md';
