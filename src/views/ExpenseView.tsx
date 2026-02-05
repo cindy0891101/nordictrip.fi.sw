@@ -45,7 +45,10 @@ const CATEGORY_HEX: Record<string, string> = {
   Others: '#8E9CA3'
 };
 
-const DonutChart: React.FC<{ data: { label: string, value: number, color: string }[] }> = ({ data }) => {
+const DonutChart: React.FC<{
+  data: { label: string; value: number; color: string }[];
+  currency: string;
+}> = ({ data, currency }) => {
   const total = data.reduce((acc, curr) => acc + curr.value, 0);
   let currentPercentage = 0;
 
@@ -82,7 +85,9 @@ const DonutChart: React.FC<{ data: { label: string, value: number, color: string
       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
         <span className="text-[10px] font-bold text-earth-dark/50 uppercase tracking-[0.2em] mb-0.5">Total Expenses</span>
         <div className="flex items-baseline gap-1">
-          <span className="text-[10px] font-bold text-harbor/60">NT$</span>
+          <span className="text-[10px] font-bold text-harbor/60">
+  {currency}
+</span>
           <span className="text-xl font-bold text-ink tracking-tighter">
             {total.toLocaleString()}
           </span>
@@ -194,7 +199,7 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ members }) => {
     })).filter(c => c.value > 0).sort((a, b) => b.value - a.value);
 
     return { total, chartData };
-  }, [analysisMemberId, expenses, currencyRates, members]);
+  }, [analysisMemberId, expenses, currencyRates, members, activeCurrency]);
 
   const currentBalances = useMemo(() => {
     const balances: Record<string, number> = {};
@@ -592,7 +597,9 @@ const settlement: Settlement = {
             </div>
           </div>
           <div className="flex flex-col items-center py-4 bg-white/40 rounded-[3rem] border border-paper/20 shadow-inner">
-            <DonutChart data={analysisData.chartData.map(d => ({ label: d.label, value: d.value, color: d.color }))} />
+            <DonutChart
+  currency={activeCurrency}
+  data={analysisData.chartData.map(d => ({ label: d.label, value: d.value, color: d.color }))} />
           </div>
           <div className="space-y-2 max-h-[300px] overflow-y-auto no-scrollbar pr-1">
             {analysisData.chartData.length === 0 ? (
