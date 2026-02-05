@@ -225,27 +225,37 @@ expenses.forEach(exp => {
   });
 
     return balances;
-  }, [expenses, settlements, members, currencyRates]);
+  }, [expenses, settlements, members, activeCurrency]);
 
   const settlementData = useMemo(() => {
-    const debtors = (Object.entries(currentBalances) as [string, number][]).filter(([_, b]) => b < -0.1).sort((a, b) => a[1] - b[1]);
-    const creditors = (Object.entries(currentBalances) as [string, number][]).filter(([_, b]) => b > 0.1).sort((a, b) => b[1] - a[1]);
+  const debtors = (Object.entries(currentBalances) as [string, number][])
+    .filter(([_, b]) => b < -0.1)
+    .sort((a, b) => a[1] - b[1]);
 
-    const suggested: Repayment[] = [];
-    let dIdx = 0, cIdx = 0;
-    const dL = debtors.map(d => [...d] as [string, number]);
-    const cL = creditors.map(c => [...c] as [string, number]);
+  const creditors = (Object.entries(currentBalances) as [string, number][])
+    .filter(([_, b]) => b > 0.1)
+    .sort((a, b) => b[1] - a[1]);
 
-    while (dIdx < dL.length && cIdx < cL.length) {
-      const transfer = Math.min(Math.abs(dL[dIdx][1]), cL[cIdx][1]);
-      suggested.push({ fromId: dL[dIdx][0], toId: cL[cIdx][0], amount: transfer });
-      dL[dIdx][1] += transfer;
-      cL[cIdx][1] -= transfer;
-      if (Math.abs(dL[dIdx][1]) < 0.1) dIdx++;
-      if (Math.abs(cL[cIdx][1]) < 0.1) cIdx++;
-    }
-    return suggested;
-  }, [currentBalances]);
+  const suggested: Repayment[] = [];
+  let dIdx = 0, cIdx = 0;
+  const dL = debtors.map(d => [...d] as [string, number]);
+  const cL = creditors.map(c => [...c] as [string, number]);
+
+  while (dIdx < dL.length && cIdx < cL.length) {
+    const transfer = Math.min(Math.abs(dL[dIdx][1]), cL[cIdx][1]);
+    suggested.push({
+      fromId: dL[dIdx][0],
+      toId: cL[cIdx][0],
+      amount: transfer
+    });
+    dL[dIdx][1] += transfer;
+    cL[cIdx][1] -= transfer;
+    if (Math.abs(dL[dIdx][1]) < 0.1) dIdx++;
+    if (Math.abs(cL[cIdx][1]) < 0.1) cIdx++;
+  }
+
+  return suggested;
+}, [currentBalances, activeCurrency]);
 
   const handleCalcInput = (val: string) => {
     if (val === '.') {
@@ -398,6 +408,8 @@ const settlement: Settlement = {
   const existing = settlements.find(
   s =>
     s.type === 'EXPENSE' &&
+    s.currency === activeCurrency &&
+    s.type === 'EXPENSE' &&
     s.expenseIds?.includes(exp.id) &&
     s.repayments.some(r => r.fromId === memberId)
 );
@@ -413,7 +425,7 @@ const settlement: Settlement = {
   const settlement: Settlement = {
   id: Date.now().toString(),
   type: 'EXPENSE',
-  currency: exp.currency,     // ⭐⭐⭐
+  currency: activeCurrency,     // ⭐⭐⭐
   expenseIds: [exp.id],
   repayments: [{
     fromId: memberId,
@@ -865,7 +877,7 @@ const settlement: Settlement = {
 
                   <div className="flex-1 text-center flex flex-col items-center justify-center">
                     <div className="text-[11px] font-bold text-earth-dark/30 line-through mb-0.5">
-                      NT$ {Math.round(r.amount).toLocaleString()}
+                      {activeCurrency} {Math.round(r.amount).toLocaleString()}
                     </div>
                     <div className="bg-[#E5DFD6]/60 px-3 py-0.5 rounded-full text-[8px] font-bold text-earth-dark/50 uppercase tracking-widest">
                       已結清
