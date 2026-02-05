@@ -993,26 +993,26 @@ const settlement: Settlement = {
                         </div>
                         <div>
                             {isPayer ? (
-                              <i className="fa-solid fa-crown text-yellow-500/40 text-xs mr-2"></i>
-                            ) : isSettled ? (
-                              <button
-                                onClick={() => toggleMemberSettled(selectedExpense, id)}
-                                className="bg-paper/20 px-3 py-1.5 rounded-full text-[9px] font-bold text-earth-dark"
-                              >
-                                已結清
-                              </button>
-                            ) : currentBalances[id] >= -0.1 ? (
-                              <span className={mutedStatusClass}>
-                                無需付款
-                              </span>
-                            ) : (
-                              <button
-                                onClick={() => toggleMemberSettled(selectedExpense, id)}
-                                className="bg-harbor/10 px-3 py-1.5 rounded-full text-[9px] font-bold text-harbor"
-                              >
-                                標記結清
-                              </button>
-                            )}
+                                <i className="fa-solid fa-crown text-yellow-500/40 text-xs mr-2"></i>
+                              ) : isSettled ? (
+                                <button
+                                  onClick={() => toggleMemberSettled(selectedExpense, id)}
+                                  className="bg-paper/20 px-3 py-1.5 rounded-full text-[9px] font-bold text-earth-dark"
+                                >
+                                  已結清
+                                </button>
+                              ) : currentBalances[id] >= -0.1 ? (
+                                <span className={mutedStatusClass}>
+                                  無需付款
+                                </span>
+                              ) : (
+                                <button
+                                  onClick={() => toggleMemberSettled(selectedExpense, id)}
+                                  className="bg-harbor/10 px-3 py-1.5 rounded-full text-[9px] font-bold text-harbor"
+                                >
+                                  標記結清
+                                </button>
+                              )}
                         </div>
                       </div>
                     );
