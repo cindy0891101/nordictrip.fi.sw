@@ -356,13 +356,6 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ isEditMode, onToggleLock })
               onClick={() => isEditMode && (setEditingItem(item), setShowEditModal(true))}
               className={`bg-white rounded-[2rem] p-6 shadow-md border-2 border-paper/30 ${isEditMode ? 'hover:border-harbor/40 cursor-pointer' : ''} transition-all flex justify-between items-center`}
             >
-              <div className="flex-grow space-y-1 pl-2">
-                {item.travelMinutes !== undefined && (
-                  <div className="text-[10px] font-bold text-earth-dark flex items-center gap-1 mt-1">
-                    <i className="fa-solid fa-car-side text-[11px]"></i>
-                    <span>車程 {item.travelMinutes} 分鐘</span>
-                  </div>
-                )}
                 <div className="text-sm font-bold text-earth-dark tracking-wide">{item.time}</div>
                 <h4 className="text-xl font-bold text-ink leading-tight">{item.location}</h4>
                  {item.address && (<div onClick={(e) => { e.stopPropagation();openInGoogleMaps(item.address!)  }}
