@@ -438,12 +438,12 @@ const settlement: Settlement = {
 
   const isMemberSettledForExpense = (expId: string, memberId: string) => {
   return settlements.some(
-  s =>
-    s.type === 'EXPENSE' &&
-    s.expenseIds?.includes(expId) &&
-    s.repayments.some(r => r.fromId === memberId)
+    s =>
+      s.currency === activeCurrency &&   // ⭐⭐⭐ 關鍵
+      s.type === 'EXPENSE' &&
+      s.expenseIds?.includes(expId) &&
+      s.repayments.some(r => r.fromId === memberId)
   );
-
 };
 
   const getCategoryIcon = (cat: string) => CATEGORIES.find(c => c.id === cat)?.icon || 'fa-tags';
@@ -852,7 +852,9 @@ const settlement: Settlement = {
         </div>
       ) : (
         <div className="space-y-2">
-          {settlements.flatMap(s =>
+          {settlements
+            .filter(s => s.currency === activeCurrency)
+            .flatMap(s =>
             s.repayments.map((r, idx) => {
               const from = members.find(m => m.id === r.fromId);
               const to = members.find(m => m.id === r.toId);
@@ -983,7 +985,6 @@ const settlement: Settlement = {
                     const m = members.find(mem => mem.id === id);
                     const isPayer = id === selectedExpense.payerId;
                     const isSettled = isMemberSettledForExpense(selectedExpense.id, id);
-                    const isCoveredByGlobalSettlement =!isSettled && settledExpenseIdSet.has(selectedExpense.id);
                     const isCurrentlyZeroDebt = !isSettled && currentBalances[id] >= -0.1;
                     const mutedStatusClass ="bg-white/40 px-3 py-1.5 rounded-full text-[9px] font-bold text-earth-dark/40 border border-paper/10";
                     const shareTwd =selectedExpense.amount / selectedExpense.splitWith.length;
