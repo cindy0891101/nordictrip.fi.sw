@@ -146,6 +146,9 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ members }) => {
         if (exp.currency !== activeCurrency) return acc;
         return acc + exp.amount;
       }
+      const expenseCountByCurrency = useMemo(() => {
+      return expenses.filter(exp => exp.currency === activeCurrency).length;
+    }, [expenses, activeCurrency]);
       return acc;
     }, 0));
   }, [expenses, members, activeCurrency]);
@@ -521,7 +524,9 @@ const settlement: Settlement = {
           </div>
           <div className="bg-[#5C4D3C] px-5 py-2.5 rounded-[1.5rem] flex items-center justify-between text-white/95 shadow-md">
             <span className="text-[11px] font-bold tracking-[0.15em]">結算狀態</span>
-            <span className="text-xs font-bold tracking-tight">共 {expenses.length} 筆紀錄</span>
+            <span className="text-xs font-bold tracking-tight">
+              共 {expenseCountByCurrency} 筆紀錄
+            </span>
           </div>
           <div className="grid grid-cols-3 gap-2.5">
             <button onClick={() => setShowSettlement(true)} className="bg-[#F3EBE3] py-2.5 rounded-[1.5rem] flex flex-col items-center hover:bg-white transition-all shadow-sm active:scale-95">
