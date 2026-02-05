@@ -146,12 +146,12 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ members }) => {
         if (exp.currency !== activeCurrency) return acc;
         return acc + exp.amount;
       }
-      const expenseCountByCurrency = useMemo(() => {
+  }, [expenses, members, activeCurrency]);
+     const expenseCountByCurrency = useMemo(() => {
       return expenses.filter(exp => exp.currency === activeCurrency).length;
     }, [expenses, activeCurrency]);
       return acc;
     }, 0));
-  }, [expenses, members, activeCurrency]);
 
   const analysisData = useMemo(() => {
 const categoriesSum: Record<string, { total: number; items: Expense[] }> = {};
