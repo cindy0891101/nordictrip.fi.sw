@@ -2,6 +2,7 @@
 export type Category = 'Attraction' | 'Food' | 'Transport' | 'Accommodation' | 'Activity' | 'Shopping';
 export type BookingType = 'flight' | 'hotel' | 'activity' | 'ticket';
 export type PackingCategory = 'Essential' | 'Gadgets' | 'Clothing' | 'Beauty' | 'Daily' | 'Others';
+export type TransportMode = 'walk' | 'drive' | 'transit' | 'flight';
 
 export interface ScheduleItem {
   id: string;
@@ -12,7 +13,8 @@ export interface ScheduleItem {
   mapUrl?: string;
   bookingRef?: string;
   address?: string;
-  driveMinutes?: number; // ✅ 新增這行
+  travelMinutes?: number;      // 原本 driveMinutes → 改更通用
+  transportMode?: TransportMode;
 }
 
 export interface WeatherInfo {
