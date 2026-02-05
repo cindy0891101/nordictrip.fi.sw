@@ -159,34 +159,36 @@ const ExpenseView: React.FC<ExpenseViewProps> = ({ members }) => {
   }, [expenses, members, activeCurrency]);
 
   const analysisData = useMemo(() => {
-    const categoriesSum: Record<string, { total: number, items: Expense[] }> = {};
-    CATEGORIES.forEach(c => categoriesSum[c.id] = { total: 0, items: [] });
+const categoriesSum: Record<string, { total: number; items: Expense[] }> = {};
+CATEGORIES.forEach(c => {
+  categoriesSum[c.id] = { total: 0, items: [] };
+});
 
-    if (analysisMemberId === 'TEAM') {
-      expenses.forEach(exp => {
-        if (exp.currency !== activeCurrency) return;
-        if (exp.splitWith.length === members.length) {
-          const rate = currencyRates[exp.currency] || 1;
-          const val = exp.amount * rate;
-          if (categoriesSum[exp.category]) {
-            categoriesSum[exp.category].total += val;
-            categoriesSum[exp.category].items.push(exp);
-          }
-        }
-      });
-    } else {
-      expenses.forEach(exp => {
-        if (exp.currency !== activeCurrency) return;
-        if (exp.splitWith.includes(analysisMemberId)) {
-          const rate = currencyRates[exp.currency] || 1;
-          const share = (exp.amount * rate) / exp.splitWith.length;
-          if (categoriesSum[exp.category]) {
-            categoriesSum[exp.category].total += share;
-            categoriesSum[exp.category].items.push(exp);
-          }
-        }
-      });
-    }
+expenses.forEach(exp => {
+  const rate = currencyRates[exp.currency] || 1;
+
+  // ① 這筆是否應該算進來
+  const isIncluded =
+    analysisMemberId === 'TEAM'
+      ? exp.splitWith.length === members.length
+      : exp.splitWith.includes(analysisMemberId);
+
+  if (!isIncluded) return;
+
+  // ② 原始分攤金額（還沒換幣）
+  const rawAmount =
+    analysisMemberId === 'TEAM'
+      ? exp.amount
+      : exp.amount / exp.splitWith.length;
+
+  // ③ 只在 analysis 做匯率轉換
+  const twdValue = rawAmount * rate;
+
+  if (categoriesSum[exp.category]) {
+    categoriesSum[exp.category].total += twdValue;
+    categoriesSum[exp.category].items.push(exp);
+  }
+});
 
     const total = Object.values(categoriesSum).reduce((a, b) => a + b.total, 0);
     const chartData = CATEGORIES.map(c => ({
