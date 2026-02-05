@@ -49,6 +49,13 @@ const fixToTraditional = (text: string) => {
   });
   return fixed;
 };
+// 👇 新增在這裡
+const TRANSPORT_OPTIONS = [
+  { key: 'walk', emoji: '🚶', label: '步行' },
+  { key: 'drive', emoji: '🚗', label: '開車' },
+  { key: 'transit', emoji: '🚇', label: '捷運' },
+  { key: 'flight', emoji: '🛫', label: '飛機' },
+] as const;
 
 const ScheduleView: React.FC<ScheduleViewProps> = ({ isEditMode, onToggleLock }) => {
   const [fullSchedule, setFullSchedule] = useState<Record<string, DayData>>({});
@@ -347,6 +354,24 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ isEditMode, onToggleLock })
                  {item.address && (<div onClick={(e) => { e.stopPropagation();openInGoogleMaps(item.address!)  }}
                    className="text-[10px] font-bold text-harbor flex items-center gap-1.5 mt-1 cursor-pointer hover:underline" >
                    <i className="fa-solid fa-location-dot"></i><span className="truncate max-w-[150px]">{item.address}</span> </div>)}
+                {item.transportMode && item.travelMinutes !== undefined && (
+                    <div className="mt-1 flex items-center gap-2 text-[11px] font-bold text-earth-dark opacity-80">
+                      <span className="text-2xl leading-none flex items-center justify-center">
+                        {item.transportMode === 'walk' && '🚶'}
+                        {item.transportMode === 'drive' && '🚗'}
+                        {item.transportMode === 'transit' && '🚇'}
+                        {item.transportMode === 'flight' && '🛫'}
+                      </span>
+                      <span>
+                        {item.transportMode === 'walk' && '步行'}
+                        {item.transportMode === 'drive' && '車程'}
+                        {item.transportMode === 'transit' && '捷運'}
+                        {item.transportMode === 'flight' && '飛行'}
+                        {' '}
+                        {item.travelMinutes} 分鐘
+                      </span>
+                    </div>
+                  )}
                 {item.note && <p className="text-xs text-earth-dark font-normal mt-2 italic">{item.note}</p>}
               </div>
               {isEditMode && (
@@ -511,9 +536,52 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ isEditMode, onToggleLock })
   />
 </div>
              <div className="space-y-2"><label className="text-[10px] font-bold text-earth-dark uppercase pl-1">預計時間</label><input type="time" value={editingItem.time} onChange={(e) => setEditingItem({...editingItem, time: e.target.value})} className="w-full h-[56px] p-5 bg-white border-2 border-paper rounded-[2rem] font-bold text-ink shadow-sm text-center" /></div>
+               {/* 交通方式 */}
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-earth-dark uppercase pl-1">
+                    交通方式
+                  </label>
+                
+                  <div className="flex gap-2 bg-white/60 border-2 border-paper rounded-[2rem] p-2 shadow-inner">
+                    {TRANSPORT_OPTIONS.map(opt => {
+                      const active = editingItem.transportMode === opt.key;
+                
+                      return (
+                        <button
+                          key={opt.key}
+                          onClick={() =>
+                            setEditingItem({
+                              ...editingItem,
+                              transportMode: opt.key,
+                            })
+                          }
+                          className={`
+                            flex-1 h-[56px]
+                            rounded-[1.5rem]
+                            flex flex-col items-center justify-center gap-1
+                            transition-all duration-200
+                            ${
+                              active
+                                ? 'bg-ink text-white shadow-md scale-[1.02]'
+                                : 'bg-white text-earth-dark/60 hover:bg-paper/60'
+                            }
+                            active:scale-95
+                          `}
+                        >
+                          <span className="text-2xl leading-none">
+                            {opt.emoji}
+                          </span>
+                          <span className="text-[9px] font-bold tracking-wide">
+                            {opt.label}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
             <div className="space-y-2">
               <label className="text-[10px] font-bold text-earth-dark uppercase pl-1">
-                車程（分鐘）
+                移動時間（分鐘）
               </label>
             
               <div className="relative">
@@ -521,19 +589,17 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ isEditMode, onToggleLock })
                   type="number"
                   min={0}
                   step={5}
-                  value={editingItem.driveMinutes ?? ''}
+                  value={editingItem.travelMinutes ?? ''}
                   onChange={(e) =>
                     setEditingItem({
                       ...editingItem,
-                      driveMinutes: e.target.value === ''
-                        ? undefined
-                        : Number(e.target.value),
+                      travelMinutes:
+                        e.target.value === '' ? undefined : Number(e.target.value),
                     })
                   }
-                  placeholder="例如：30"
+                  placeholder="例如：25"
                   className="w-full h-[56px] p-5 pr-14 bg-white border-2 border-paper rounded-[2rem] font-bold text-ink shadow-sm text-center"
                 />
-            
                 <span className="absolute right-5 top-1/2 -translate-y-1/2 text-xs font-bold text-earth-dark opacity-60">
                   分
                 </span>
