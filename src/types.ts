@@ -12,6 +12,7 @@ export interface ScheduleItem {
   mapUrl?: string;
   bookingRef?: string;
   address?: string;
+  driveMinutes?: number; // ✅ 新增這行
 }
 
 export interface WeatherInfo {
