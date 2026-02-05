@@ -35,6 +35,20 @@ const shiftTimeStr = (timeStr: string, minutes: number): string => {
   return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 };
 
+const minutesToHM = (total?: number) => {
+  if (!total && total !== 0) return { h: '', m: '' };
+  return {
+    h: Math.floor(total / 60),
+    m: total % 60,
+  };
+};
+
+const hmToMinutes = (h: string | number, m: string | number) => {
+  const hh = Number(h) || 0;
+  const mm = Number(m) || 0;
+  return hh * 60 + mm;
+};
+
 const T_CHINESE_MAP: Record<string, string> = {
   '韩国': '韓國', '首尔': '首爾', '东京': '東京', '大阪': '大阪',
   '关西': '關西', '京都': '京都', '台北': '臺北', '台中': '臺中',
@@ -354,24 +368,30 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ isEditMode, onToggleLock })
                  {item.address && (<div onClick={(e) => { e.stopPropagation();openInGoogleMaps(item.address!)  }}
                    className="text-[10px] font-bold text-harbor flex items-center gap-1.5 mt-1 cursor-pointer hover:underline" >
                    <i className="fa-solid fa-location-dot"></i><span className="truncate max-w-[150px]">{item.address}</span> </div>)}
-                {item.transportMode && item.travelMinutes !== undefined && (
-                    <div className="mt-1 flex items-center gap-2 text-[11px] font-bold text-earth-dark opacity-80">
-                      <span className="text-2xl leading-none flex items-center justify-center">
-                        {item.transportMode === 'walk' && '🚶'}
-                        {item.transportMode === 'drive' && '🚗'}
-                        {item.transportMode === 'transit' && '🚇'}
-                        {item.transportMode === 'flight' && '🛫'}
-                      </span>
-                      <span>
-                        {item.transportMode === 'walk' && '步行'}
-                        {item.transportMode === 'drive' && '車程'}
-                        {item.transportMode === 'transit' && '捷運'}
-                        {item.transportMode === 'flight' && '飛行'}
-                        {' '}
-                        {item.travelMinutes} 分鐘
-                      </span>
-                    </div>
-                  )}
+               {item.transportMode && item.travelMinutes !== undefined && (
+                <div className="mt-1 flex items-center gap-2 text-[11px] font-bold text-earth-dark opacity-80">
+                  <span className="text-base leading-none">
+                    {item.transportMode === 'walk' && '🚶'}
+                    {item.transportMode === 'drive' && '🚗'}
+                    {item.transportMode === 'transit' && '🚇'}
+                    {item.transportMode === 'flight' && '🛫'}
+                  </span>
+                  <span>
+                    {item.transportMode === 'walk' && '步行'}
+                    {item.transportMode === 'drive' && '車程'}
+                    {item.transportMode === 'transit' && '捷運'}
+                    {item.transportMode === 'flight' && '飛行'}
+                    {' '}
+                    {(() => {
+                      const h = Math.floor(item.travelMinutes / 60);
+                      const m = item.travelMinutes % 60;
+                      if (h && m) return `${h} 小時 ${m} 分`;
+                      if (h) return `${h} 小時`;
+                      return `${m} 分`;
+                    })()}
+                  </span>
+                </div>
+              )}
                 {item.note && <p className="text-xs text-earth-dark font-normal mt-2 italic">{item.note}</p>}
               </div>
               {isEditMode && (
@@ -579,32 +599,62 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ isEditMode, onToggleLock })
                     })}
                   </div>
                 </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-earth-dark uppercase pl-1">
-                移動時間（分鐘）
-              </label>
-            
-              <div className="relative">
-                <input
-                  type="number"
-                  min={0}
-                  step={5}
-                  value={editingItem.travelMinutes ?? ''}
-                  onChange={(e) =>
-                    setEditingItem({
-                      ...editingItem,
-                      travelMinutes:
-                        e.target.value === '' ? undefined : Number(e.target.value),
-                    })
-                  }
-                  placeholder="例如：25"
-                  className="w-full h-[56px] p-5 pr-14 bg-white border-2 border-paper rounded-[2rem] font-bold text-ink shadow-sm text-center"
-                />
-                <span className="absolute right-5 top-1/2 -translate-y-1/2 text-xs font-bold text-earth-dark opacity-60">
-                  分
-                </span>
+            {/* 移動時間 */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-earth-dark uppercase pl-1">
+                  移動時間
+                </label>
+              
+                {(() => {
+                  const { h, m } = minutesToHM(editingItem.travelMinutes);
+              
+                  return (
+                    <div className="flex gap-3">
+                      {/* 小時 */}
+                      <div className="relative flex-1">
+                        <input
+                          type="number"
+                          min={0}
+                          value={h}
+                          onChange={(e) =>
+                            setEditingItem({
+                              ...editingItem,
+                              travelMinutes: hmToMinutes(e.target.value, m),
+                            })
+                          }
+                          placeholder="0"
+                          className="w-full h-[56px] p-5 pr-10 bg-white border-2 border-paper rounded-[2rem] font-bold text-ink shadow-sm text-center"
+                        />
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-earth-dark opacity-60">
+                          小時
+                        </span>
+                      </div>
+              
+                      {/* 分鐘 */}
+                      <div className="relative flex-1">
+                        <input
+                          type="number"
+                          min={0}
+                          max={59}
+                          step={5}
+                          value={m}
+                          onChange={(e) =>
+                            setEditingItem({
+                              ...editingItem,
+                              travelMinutes: hmToMinutes(h, e.target.value),
+                            })
+                          }
+                          placeholder="0"
+                          className="w-full h-[56px] p-5 pr-10 bg-white border-2 border-paper rounded-[2rem] font-bold text-ink shadow-sm text-center"
+                        />
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-earth-dark opacity-60">
+                          分
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
-            </div>
             <div className="space-y-2">
               <label className="text-[10px] font-bold text-earth-dark uppercase pl-1">行程類別</label>
               <div className="grid grid-cols-6 gap-2 p-2 bg-white border-2 border-paper rounded-[1.5rem] shadow-sm">
