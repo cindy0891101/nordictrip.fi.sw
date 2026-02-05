@@ -4,6 +4,7 @@ export type BookingType = 'flight' | 'hotel' | 'activity' | 'ticket';
 export type PackingCategory = 'Essential' | 'Gadgets' | 'Clothing' | 'Beauty' | 'Daily' | 'Others';
 export type TransportMode = 'walk' | 'drive' | 'transit' | 'flight';
 
+
 export interface ScheduleItem {
   id: string;
   time: string;
