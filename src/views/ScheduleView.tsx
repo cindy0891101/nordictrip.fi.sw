@@ -342,15 +342,24 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ isEditMode, onToggleLock })
         {currentDayData?.items?.length > 0 ? currentDayData.items.map((item, index) => (
           <div key={item.id} className="relative pl-16 pr-4 animate-in fade-in slide-in-from-left-2 duration-300 group">
             {index < currentDayData.items.length - 1 && <div className="absolute left-[21px] top-1/2 h-[calc(100%+1.5rem)] border-l-2 border-dashed border-paper/60 z-0"></div>}
-           <div
-                className={`absolute left-0 top-1/2 -translate-y-1/2 w-12 h-12 rounded-[1.5rem] border-[3px] border-white shadow-lg z-10 flex items-center justify-center ${CATEGORY_COLORS[item.category] || 'bg-ink'}`}
-              >
-                <div className="text-white">
-                  {getCategoryIcon(item.category)}
-                </div>
-              </div>
+          <div
+              className={`absolute left-0 top-1/2 -translate-y-1/2
+                w-12 h-12 rounded-[1.5rem]
+                border-[3px] border-white
+                shadow-lg z-10
+                flex items-center justify-center
+                ${CATEGORY_COLORS[item.category] || 'bg-ink'}`}
+            >
+              <span className="text-white">
+                {getCategoryIcon(item.category)}
+              </span>
+            </div>
+            
+            <div
               onClick={() => isEditMode && (setEditingItem(item), setShowEditModal(true))}
-              className={`bg-white rounded-[2rem] p-6 shadow-md border-2 border-paper/30 ${isEditMode ? 'hover:border-harbor/40 cursor-pointer' : ''} transition-all flex justify-between items-center`}
+              className={`bg-white rounded-[2rem] p-6 shadow-md border-2 border-paper/30
+                ${isEditMode ? 'hover:border-harbor/40 cursor-pointer' : ''}
+                transition-all flex justify-between items-center`}
             >
               <div className="flex-grow space-y-1 pl-2">  
               <div className="text-sm font-bold text-earth-dark tracking-wide">{item.time}</div>
@@ -441,9 +450,6 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ isEditMode, onToggleLock })
                       </div>
                    </div>
                    <div className="w-16 h-16 bg-paper/10 rounded-full flex items-center justify-center shadow-inner border border-paper/20">
-                      <div className="text-white">
-                                {getCategoryIcon(cat)}
-                              </div>
                    </div>
                 </div>
               ) : (
@@ -650,7 +656,10 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ isEditMode, onToggleLock })
             <div className="space-y-2">
               <label className="text-[10px] font-bold text-earth-dark uppercase pl-1">行程類別</label>
               <div className="grid grid-cols-6 gap-2 p-2 bg-white border-2 border-paper rounded-[1.5rem] shadow-sm">
-                {categoryList.map(cat => (<button key={cat} onClick={() => setEditingItem({...editingItem, category: cat})} className={`aspect-square rounded-xl flex items-center justify-center transition-all ${editingItem.category === cat ? `${CATEGORY_COLORS[cat] || 'bg-ink'} text-white shadow-md` : 'text-earth/50'}`}><i className={`fa-solid ${getCategoryIcon(cat)} text-sm`}></i></button>))}
+                {categoryList.map(cat => (<button key={cat} onClick={() => setEditingItem({...editingItem, category: cat})} className={`aspect-square rounded-xl flex items-center justify-center transition-all ${editingItem.category === cat ? `${CATEGORY_COLORS[cat] || 'bg-ink'} text-white shadow-md` : 'text-earth/50'}`}>
+                  <span className={editingItem.category === cat ? 'text-white' : 'text-earth/50'}>
+                    {getCategoryIcon(cat)}
+                  </span></button>))}
               </div>
             </div>
             <div className="space-y-2"><label className="text-[10px] font-bold text-earth-dark uppercase pl-1">行程備註細節</label><textarea value={editingItem.note} onChange={(e) => setEditingItem({...editingItem, note: e.target.value})} className="w-full p-5 bg-white border-2 border-paper rounded-[2rem] text-sm text-ink min-h-[100px] shadow-sm" /></div>
