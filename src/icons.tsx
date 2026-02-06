@@ -10,7 +10,7 @@ import {
 
 export function getCategoryIcon(type: string) {
   switch (type) {
-    case 'Transport': return <Car size={18} COLOR="RED" />;
+    case 'Transport': return <Car size={18} color="red" />;
     case 'Food': return <Utensils size={18} />;
     case 'Attraction': return <Camera size={18} />;
     case 'Accommodation': return <Bed size={18} />;
