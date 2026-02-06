@@ -453,7 +453,17 @@ const getWeatherIcon = (condition: string, hour: string, temp: number) => {
                   disabled={isFetchingWeather} 
                   className="w-12 h-12 min-w-[48px] bg-ink text-white rounded-full flex items-center justify-center flex-shrink-0 active:scale-90 transition-all shadow-md mr-1 disabled:opacity-50"
                 >
-                  {isFetchingWeather ? <FontAwesomeIcon icon={FA.faSpinner} className="animate-spin text-sm" /></i> : <i className="fa-solid fa-magnifying-glass text-sm"></i>}
+                  {isFetchingWeather ? (
+                      <FontAwesomeIcon
+                        icon={FA.faSpinner}
+                        className="animate-spin text-sm"
+                      />
+                    ) : (
+                      <FontAwesomeIcon
+                        icon={FA.faMagnifyingGlass}
+                        className="text-sm"
+                      />
+                    )}
                 </button>
               </div>
             </div>
