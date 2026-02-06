@@ -5,6 +5,8 @@ import { Modal, NordicButton } from '../components/Shared';
 import { MOCK_WEATHER, CATEGORY_COLORS } from '../constants';
 import type{ ScheduleItem, Category, WeatherInfo } from '../types';
 import { dbService } from '../firebaseService';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import * as FA from '../faIcons';
 import { getCategoryIcon } from '../icons';
 
 interface ExtendedWeatherInfo extends WeatherInfo {
@@ -237,18 +239,33 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ isEditMode, onToggleLock })
 
 
 
-  const getWeatherDisplay = (condition: string, hour: string, temp: number) => {
-    if (temp < 0) return 'fa-snowflake text-blue-400 drop-shadow-md';
-    const h = parseInt((hour || "00:00").split(':')[0]);
-    const isNight = h < 6 || h >= 18;
-    switch(condition) {
-      case 'sunny': return isNight ? 'fa-moon text-indigo-300' : 'fa-sun text-yellow-400';
-      case 'rainy': return 'fa-cloud-showers-heavy text-blue-400';
-      case 'snowy': return 'fa-snowflake text-blue-400';
-      case 'cloudy': return isNight ? 'fa-cloud-moon text-slate-400' : 'fa-cloud text-white drop-shadow-md';
-      default: return isNight ? 'fa-cloud-moon text-slate-400' : 'fa-cloud text-white drop-shadow-md';
-    }
-  };
+const getWeatherIcon = (condition: string, hour: string, temp: number) => {
+  if (temp < 0) {
+    return <FontAwesomeIcon icon={FA.faSnowflake} className="text-blue-400 text-xl" />;
+  }
+
+  const h = parseInt(hour.split(':')[0]);
+  const isNight = h < 6 || h >= 18;
+
+  switch(condition) {
+    case 'sunny':
+      return isNight
+        ? <FontAwesomeIcon icon={FA.faMoon} className="text-indigo-300 text-xl" />
+        : <FontAwesomeIcon icon={FA.faSun} className="text-yellow-400 text-xl" />;
+
+    case 'rainy':
+      return <FontAwesomeIcon icon={FA.faCloudShowersHeavy} className="text-blue-400 text-xl" />;
+
+    case 'cloudy':
+      return isNight
+        ? <FontAwesomeIcon icon={FA.faCloudMoon} className="text-slate-400 text-xl" />
+        : <FontAwesomeIcon icon={FA.faCloud} className="text-white text-xl drop-shadow-md" />;
+
+    default:
+      return <FontAwesomeIcon icon={FA.faCloud} className="text-white text-xl" />;
+  }
+};
+
   const openInGoogleMaps = (address: string) => {
   if (!address) return;
   window.open(
@@ -269,7 +286,10 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ isEditMode, onToggleLock })
               className="opacity-0 hover:opacity-100 active:opacity-100 focus:opacity-100 transition-opacity p-2 -ml-1"
               title={isEditMode ? "鎖定視圖" : "開啟編輯"}
             >
-              <i className={`fa-solid ${isEditMode ? 'fa-lock-open text-stamp' : 'fa-lock text-ink/20'}`}></i>
+              <FontAwesomeIcon
+                  icon={isEditMode ? FA.faLockOpen : FA.faLock}
+                  className={isEditMode ? 'text-stamp' : 'text-ink/20'}
+                />
             </button>
           )}
         </div>
@@ -301,7 +321,7 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ isEditMode, onToggleLock })
               <div key={idx} className="bg-white/95 backdrop-blur-sm p-4 rounded-3xl min-w-[105px] text-center border-2 border-paper/40 shadow-xl flex-shrink-0 snap-start animate-in fade-in duration-500">
                 <span className="text-[10px] font-bold text-earth-dark block mb-2">{w.hour}</span>
                 <div className="h-8 flex items-center justify-center mb-1">
-                  <i className={`fa-solid ${getWeatherDisplay(w.condition, w.hour, w.temp)} text-xl`}></i>
+                  <i className={`fa-solid ${getWeatherIcon(w.condition, w.hour, w.temp)} text-xl`}></i>
                 </div>
                 <div className="space-y-0.5">
                   <span className="text-sm font-bold text-ink block">{w.temp}°C</span>
@@ -398,7 +418,7 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ isEditMode, onToggleLock })
                   onClick={(e) => { e.stopPropagation(); updateScheduleCloud({ ...fullSchedule, [selectedDate]: { ...currentDayData!, items: currentDayData!.items.filter(i => i.id !== item.id) } }); }}
                   className="w-10 h-10 rounded-full bg-stamp/10 text-stamp flex items-center justify-center active:scale-90 transition-all"
                 >
-                  <i className="fa-solid fa-trash-can text-sm"></i>
+                 <FontAwesomeIcon icon={FA.faTrashCan} className="text-sm" />
                 </button>
               )}
             </div>
@@ -433,7 +453,7 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ isEditMode, onToggleLock })
                   disabled={isFetchingWeather} 
                   className="w-12 h-12 min-w-[48px] bg-ink text-white rounded-full flex items-center justify-center flex-shrink-0 active:scale-90 transition-all shadow-md mr-1 disabled:opacity-50"
                 >
-                  {isFetchingWeather ? <i className="fa-solid fa-spinner animate-spin text-sm"></i> : <i className="fa-solid fa-magnifying-glass text-sm"></i>}
+                  {isFetchingWeather ? <FontAwesomeIcon icon={FA.faSpinner} className="animate-spin text-sm" /></i> : <i className="fa-solid fa-magnifying-glass text-sm"></i>}
                 </button>
               </div>
             </div>
