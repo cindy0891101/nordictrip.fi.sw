@@ -342,8 +342,13 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ isEditMode, onToggleLock })
         {currentDayData?.items?.length > 0 ? currentDayData.items.map((item, index) => (
           <div key={item.id} className="relative pl-16 pr-4 animate-in fade-in slide-in-from-left-2 duration-300 group">
             {index < currentDayData.items.length - 1 && <div className="absolute left-[21px] top-1/2 h-[calc(100%+1.5rem)] border-l-2 border-dashed border-paper/60 z-0"></div>}
-            <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-12 h-12 rounded-[1.5rem] border-[3px] border-white shadow-lg z-10 flex items-center justify-center ${CATEGORY_COLORS[item.category] || 'bg-ink'}`}><i className={`text-white text-xl fa-solid ${getCategoryIcon(item.category)}`}></i></div>
-            <div 
+           <div
+                className={`absolute left-0 top-1/2 -translate-y-1/2 w-12 h-12 rounded-[1.5rem] border-[3px] border-white shadow-lg z-10 flex items-center justify-center ${CATEGORY_COLORS[item.category] || 'bg-ink'}`}
+              >
+                <div className="text-white">
+                  {getCategoryIcon(item.category)}
+                </div>
+              </div>
               onClick={() => isEditMode && (setEditingItem(item), setShowEditModal(true))}
               className={`bg-white rounded-[2rem] p-6 shadow-md border-2 border-paper/30 ${isEditMode ? 'hover:border-harbor/40 cursor-pointer' : ''} transition-all flex justify-between items-center`}
             >
@@ -436,7 +441,9 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ isEditMode, onToggleLock })
                       </div>
                    </div>
                    <div className="w-16 h-16 bg-paper/10 rounded-full flex items-center justify-center shadow-inner border border-paper/20">
-                      <i className={`fa-solid ${getWeatherDisplay(tempMetadata.forecast[4]?.condition || 'cloudy', '12:00', tempMetadata.forecast[4]?.temp || 20)} text-3xl`}></i>
+                      <div className="text-white">
+                                {getCategoryIcon(cat)}
+                              </div>
                    </div>
                 </div>
               ) : (
