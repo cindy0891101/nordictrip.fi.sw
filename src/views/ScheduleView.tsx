@@ -321,7 +321,7 @@ const getWeatherIcon = (condition: string, hour: string, temp: number) => {
               <div key={idx} className="bg-white/95 backdrop-blur-sm p-4 rounded-3xl min-w-[105px] text-center border-2 border-paper/40 shadow-xl flex-shrink-0 snap-start animate-in fade-in duration-500">
                 <span className="text-[10px] font-bold text-earth-dark block mb-2">{w.hour}</span>
                 <div className="h-8 flex items-center justify-center mb-1">
-                  <i className={`fa-solid ${getWeatherIcon(w.condition, w.hour, w.temp)} text-xl`}></i>
+                  {getWeatherIcon(w.condition, w.hour, w.temp)}
                 </div>
                 <div className="space-y-0.5">
                   <span className="text-sm font-bold text-ink block">{w.temp}°C</span>
