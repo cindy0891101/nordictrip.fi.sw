@@ -383,7 +383,45 @@ const getWeatherIcon = (condition: string, hour: string, temp: number) => {
             >
               <div className="flex-grow space-y-1 pl-2">  
               <div className="text-sm font-bold text-earth-dark tracking-wide">{item.time}</div>
+                <div className="flex items-start justify-between gap-3">
                 <h4 className="text-xl font-bold text-ink leading-tight">{item.location}</h4>
+                {item.link && (<a
+                    href={item.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex items-center gap-1.5 px-2.5 py-1 
+                               rounded-full bg-paper/70 border border-paper
+                               text-[10px] font-bold text-earth-dark
+                               hover:bg-harbor/10 transition-all shrink-0"
+                  >
+                    {(() => {
+                      try {
+                        const url = new URL(item.link as string);
+                        const domain = url.hostname.replace('www.', '');
+              
+                        return (
+                          <>
+                            <img
+                              src={`https://www.google.com/s2/favicons?sz=64&domain=${domain}`}
+                              alt=""
+                              className="w-3.5 h-3.5"
+                            />
+                            <span>{domain}</span>
+                            <i className="fa-solid fa-arrow-up-right-from-square text-[9px] opacity-50"></i>
+                          </>
+                        );
+                      } catch {
+                        return (
+                          <>
+                            <i className="fa-solid fa-link text-[9px]"></i>
+                          </>
+                        );
+                      }
+                    })()}
+                  </a>
+                )}
+              </div>
                  {item.address && (<div onClick={(e) => { e.stopPropagation();openInGoogleMaps(item.address!)  }}
                    className="text-[10px] font-bold text-harbor flex items-center gap-1.5 mt-1 cursor-pointer hover:underline" >
                    <i className="fa-solid fa-location-dot"></i><span className="truncate max-w-[150px]">{item.address}</span> </div>)}
@@ -411,72 +449,7 @@ const getWeatherIcon = (condition: string, hour: string, temp: number) => {
                   </span>
                 </div>
               )}
-            {item.link && (
-                  <a
-                    href={item.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    className="group mt-3 block"
-                  >
-                    {(() => {
-                      try {
-                        const url = new URL(item.link as string);
-                        const domain = url.hostname.replace('www.', '');
-                
-                        return (
-                          <div
-                            className="flex items-center gap-3 px-4 py-2.5 
-                                       rounded-2xl bg-white border border-paper/60
-                                       shadow-sm hover:shadow-md
-                                       transition-all duration-200
-                                       group-hover:scale-[1.02]"
-                          >
-                            {/* favicon */}
-                            <div className="w-8 h-8 rounded-full bg-paper/40 
-                                            flex items-center justify-center 
-                                            overflow-hidden shadow-inner">
-                              <img
-                                src={`https://www.google.com/s2/favicons?sz=64&domain=${domain}`}
-                                alt=""
-                                className="w-5 h-5"
-                              />
-                            </div>
-                
-                            {/* 網域 */}
-                            <div className="flex flex-col leading-tight">
-                              <span className="text-[11px] font-bold text-earth-dark">
-                                外部連結
-                              </span>
-                              <span className="text-sm font-semibold text-ink">
-                                {domain}
-                              </span>
-                            </div>
-                
-                            {/* 右箭頭 */}
-                            <div className="ml-auto opacity-40 group-hover:opacity-70 transition-all">
-                              <i className="fa-solid fa-arrow-up-right-from-square text-xs"></i>
-                            </div>
-                          </div>
-                        );
-                      } catch {
-                        return (
-                          <div
-                            className="flex items-center gap-2 px-3 py-2 
-                                       rounded-xl bg-paper border border-paper/50"
-                          >
-                            <i className="fa-solid fa-link text-xs"></i>
-                            <span className="text-xs font-bold text-earth-dark">
-                              {item.link}
-                            </span>
-                          </div>
-                        );
-                      }
-                    })()}
-                  </a>
-                )}
-                
-                {item.note && <p className="text-xs text-earth-dark font-normal mt-2 italic">{item.note}</p>}
+            {item.note && <p className="text-xs text-earth-dark font-normal mt-2 italic">{item.note}</p>}
               </div>
               {isEditMode && (
                 <button 
