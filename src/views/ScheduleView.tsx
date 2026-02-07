@@ -389,7 +389,8 @@ const getWeatherIcon = (condition: string, hour: string, temp: number) => {
                  {item.address && (<div onClick={(e) => { e.stopPropagation();openInGoogleMaps(item.address!)  }}
                    className="text-[10px] font-bold text-harbor flex items-center gap-1.5 mt-1 cursor-pointer hover:underline" >
                    <FontAwesomeIcon icon={FA.faLocationDot} /><span className="truncate max-w-[150px]">{item.address}</span> </div>)}
-               {item.transportMode && item.travelMinutes !== undefined && (
+               
+                {item.transportMode && item.travelMinutes !== undefined && (
                 <div className="mt-1 flex items-center gap-2 text-[11px] font-bold text-earth-dark opacity-80">
                   <span className="text-base leading-none">
                     {item.transportMode === 'walk' && '🚶'}
@@ -399,8 +400,8 @@ const getWeatherIcon = (condition: string, hour: string, temp: number) => {
                   </span>
                   <span>
                     {item.transportMode === 'walk' && '步行'}
-                    {item.transportMode === 'drive' && '車程'}
-                    {item.transportMode === 'transit' && '捷運'}
+                    {item.transportMode === 'drive' && '計程車'}
+                    {item.transportMode === 'transit' && '大眾交通'}
                     {item.transportMode === 'flight' && '飛行'}
                     {' '}
                     {(() => {
@@ -413,8 +414,28 @@ const getWeatherIcon = (condition: string, hour: string, temp: number) => {
                   </span>
                 </div>
               )}
-                {item.note && <p className="text-xs text-earth-dark font-normal mt-2 italic">{item.note}</p>}
-              </div>
+                {item.link && (
+                  <a
+                    href={item.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 mt-2 px-3 py-1.5 
+                               rounded-full bg-paper border border-paper/50 
+                               text-[11px] font-bold text-earth-dark 
+                               hover:bg-harbor/10 transition-all"
+                  >
+                    <span>🔗</span>
+                    <span>
+                      {(() => {
+                        try {
+                          return new URL(item.link).hostname.replace('www.', '');
+                        } catch {
+                          return item.link;
+                        }
+                      })()}
+                    </span>
+                  </a>
+                )}
               {isEditMode && (
                 <button 
                   onClick={(e) => { e.stopPropagation(); updateScheduleCloud({ ...fullSchedule, [selectedDate]: { ...currentDayData!, items: currentDayData!.items.filter(i => i.id !== item.id) } }); }}
@@ -697,10 +718,65 @@ const getWeatherIcon = (condition: string, hour: string, temp: number) => {
             </div>
             <div className="space-y-2"><label className="text-[10px] font-bold text-earth-dark uppercase pl-1">行程備註細節</label><textarea value={editingItem.note} onChange={(e) => setEditingItem({...editingItem, note: e.target.value})} className="w-full p-5 bg-white border-2 border-paper rounded-[2rem] text-sm text-ink min-h-[100px] shadow-sm" /></div>
             <div className="pt-2 space-y-3">
-              <NordicButton onClick={() => { const next = { ...fullSchedule }; Object.keys(next).forEach(d => { if (next[d]?.items) next[d].items = next[d].items.filter(i => i.id !== editingItem.id); }); if (next[selectedDate]) next[selectedDate].items = [...(next[selectedDate].items || []), editingItem].sort((a, b) => a.time.localeCompare(b.time)); updateScheduleCloud(next); setShowEditModal(false); }} className="w-full py-5 bg-ink text-white font-bold">儲存行程細節</NordicButton>
+             <NordicButton
+          onClick={() => {
+        
+            const rawLink = editingItem.link?.trim();
+        
+            const formattedLink =
+              rawLink && !rawLink.startsWith('http')
+                ? `https://${rawLink}`
+                : rawLink || undefined;
+        
+            const updatedItem = {
+              ...editingItem,
+              link: formattedLink,
+            };
+        
+            const next = { ...fullSchedule };
+        
+            Object.keys(next).forEach(d => {
+              if (next[d]?.items) {
+                next[d].items = next[d].items.filter(
+                  i => i.id !== updatedItem.id
+                );
+              }
+            });
+        
+            if (next[selectedDate]) {
+              next[selectedDate].items = [
+                ...(next[selectedDate].items || []),
+                updatedItem,
+              ].sort((a, b) => a.time.localeCompare(b.time));
+            }
+        
+            updateScheduleCloud(next);
+            setShowEditModal(false);
+          }}
+          className="w-full py-5 bg-ink text-white font-bold"
+        >
+          儲存行程細節
+        </NordicButton>
               <button onClick={() => { updateScheduleCloud({ ...fullSchedule, [selectedDate]: { ...currentDayData!, items: (currentDayData!.items || []).filter(i => i.id !== editingItem.id) } }); setShowEditModal(false); }} className="w-full py-3 text-stamp font-bold text-xs uppercase hover:underline"><FontAwesomeIcon icon={FA.faTrashCan} className="text-xs" /> 刪除此項行程</button>
             </div>
           </div>
+          <div className="space-y-2">
+              <label className="text-[10px] font-bold text-earth-dark uppercase pl-1">
+                相關連結
+              </label>
+              <input
+                type="url"
+                value={editingItem.link || ''}
+                onChange={(e) =>
+                  setEditingItem({
+                    ...editingItem,
+                    link: e.target.value,
+                  })
+                }
+                className="w-full h-[56px] p-5 bg-white border-2 border-paper rounded-[2rem] font-bold text-ink shadow-sm"
+                placeholder="https://..."
+              />
+            </div>
         )}
       </Modal>
     </div>
