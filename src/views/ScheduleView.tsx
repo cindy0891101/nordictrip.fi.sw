@@ -376,7 +376,8 @@ const getWeatherIcon = (condition: string, hour: string, temp: number) => {
                 {getCategoryIcon(item.category)}
               </span>
             </div>
-            
+                ))  /* 👈 關 map */
+                  : (   /* 👈 else */
 <div
   onClick={() => isEditMode && (setEditingItem(item), setShowEditModal(true))}
   className={`bg-white rounded-[2rem] p-6 shadow-md border-2 border-paper/30
