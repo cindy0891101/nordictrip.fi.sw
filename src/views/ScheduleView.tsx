@@ -300,9 +300,7 @@ const getWeatherIcon = (condition: string, hour: string, temp: number) => {
              className={`text-sm font-bold text-ink bg-white/60 px-5 py-2 rounded-full border border-paper shadow-sm text-center min-w-[120px] tracking-tight flex items-center justify-center gap-2 ${isEditMode && selectedDate ? 'hover:bg-white active:scale-95 transition-all cursor-pointer' : 'opacity-50'}`}
            >
              {currentDayData?.metadata?.locationName || '未設定'}
-             {isEditMode && selectedDate && (
-              <FontAwesomeIcon icon={FA.faPen} className="text-[9px] opacity-40" />
-            )}
+             {isEditMode && selectedDate && <i className="fa-solid fa-pen text-[9px] opacity-40"></i>}
            </button>
         </div>
       </div>
@@ -347,181 +345,96 @@ const getWeatherIcon = (condition: string, hour: string, temp: number) => {
         ))}
         {isEditMode && (
           <div className="flex gap-2 items-center pl-2">
-            <button onClick={() => setShowDateModal(true)} className="flex-shrink-0 w-14 h-14 rounded-full border-2 border-dashed border-paper bg-white/20 flex items-center justify-center text-ink active:scale-90 transition-all shadow-sm"><FontAwesomeIcon icon={FA.faPlus} /></button>
+            <button onClick={() => setShowDateModal(true)} className="flex-shrink-0 w-14 h-14 rounded-full border-2 border-dashed border-paper bg-white/20 flex items-center justify-center text-ink active:scale-90 transition-all shadow-sm"><i className="fa-solid fa-plus text-xs"></i></button>
             {dates.length > 0 && (
-              <button onClick={() => setShowManageDatesModal(true)} className="flex-shrink-0 w-14 h-14 rounded-full border-2 border-paper bg-white/20 flex items-center justify-center text-ink active:scale-90 transition-all shadow-sm"><FontAwesomeIcon icon={FA.faGear} className="text-xs" /></button>
+              <button onClick={() => setShowManageDatesModal(true)} className="flex-shrink-0 w-14 h-14 rounded-full border-2 border-paper bg-white/20 flex items-center justify-center text-ink active:scale-90 transition-all shadow-sm"><i className="fa-solid fa-gear text-xs"></i></button>
             )}
           </div>
         )}
       </div>
 
- <div className="space-y-6 overflow-x-hidden relative px-1">
-
-  {isEditMode && (currentDayData?.items?.length || 0) > 0 && (
-    <div className="flex justify-end mb-2 pr-1">
-      <button
-        onClick={() => setShowTimeShiftModal(true)}
-        className="text-[10px] font-bold text-stamp bg-stamp/10 px-4 py-2 rounded-full border border-stamp/20 flex items-center gap-2 hover:bg-stamp/20 transition-all shadow-sm"
-      >
-        <FontAwesomeIcon icon={FA.faClockRotateLeft} /> 時程調整
-      </button>
-    </div>
-  )}
-
-  {currentDayData?.items?.length > 0 ? (
-    currentDayData.items.map((item, index) => (
-      <div
-        key={item.id}
-        className="relative pl-16 pr-4 animate-in fade-in slide-in-from-left-2 duration-300 group"
-      >
-        {index < currentDayData.items.length - 1 && (
-          <div className="absolute left-[21px] top-1/2 h-[calc(100%+1.5rem)] border-l-2 border-dashed border-paper/60 z-0"></div>
-        )}
-
-        <div
-          className={`absolute left-0 top-1/2 -translate-y-1/2
-            w-12 h-12 rounded-[1.5rem]
-            border-[3px] border-white
-            shadow-lg z-10
-            flex items-center justify-center
-            ${CATEGORY_COLORS[item.category] || 'bg-ink'}`}
-        >
-          <span className="text-white">
-            {getCategoryIcon(item.category)}
-          </span>
-        </div>
-
-        <div
-          onClick={() =>
-            isEditMode &&
-            (setEditingItem(item), setShowEditModal(true))
-          }
-          className={`bg-white rounded-[2rem] p-6 shadow-md border-2 border-paper/30
-            ${isEditMode ? 'hover:border-harbor/40 cursor-pointer' : ''}
-            transition-all flex justify-between items-center`}
-        >
-          <div className="flex-grow space-y-1 pl-2">
-
-            <div className="text-sm font-bold text-earth-dark tracking-wide">
-              {item.time}
-            </div>
-
-            <h4 className="text-xl font-bold text-ink leading-tight">
-              {item.location}
-            </h4>
-
-            {item.address && (
-              <div
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openInGoogleMaps(item.address!);
-                }}
-                className="text-[10px] font-bold text-harbor flex items-center gap-1.5 mt-1 cursor-pointer hover:underline"
-              >
-                <FontAwesomeIcon icon={FA.faLocationDot} />
-                <span className="truncate max-w-[150px]">
-                  {item.address}
-                </span>
-              </div>
-            )}
-
-            {item.transportMode && item.travelMinutes !== undefined && (
-              <div className="mt-1 flex items-center gap-2 text-[11px] font-bold text-earth-dark opacity-80">
-                <span className="text-base leading-none">
-                  {item.transportMode === 'walk' && '🚶'}
-                  {item.transportMode === 'drive' && '🚗'}
-                  {item.transportMode === 'transit' && '🚇'}
-                  {item.transportMode === 'flight' && '🛫'}
-                </span>
-
-                <span>
-                  {item.transportMode === 'walk' && '步行'}
-                  {item.transportMode === 'drive' && '計程車'}
-                  {item.transportMode === 'transit' && '大眾交通'}
-                  {item.transportMode === 'flight' && '飛行'}
-                  {' '}
-
-                  {(() => {
-                    const h = Math.floor(item.travelMinutes / 60);
-                    const m = item.travelMinutes % 60;
-
-                    if (h && m) return `${h} 小時 ${m} 分`;
-                    if (h) return `${h} 小時`;
-                    return `${m} 分`;
-                  })()}
-                </span>
-              </div>
-            )}
-
-            {item.link && (
-              <a
-                href={item.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 mt-2 px-3 py-1.5 
-                           rounded-full bg-paper border border-paper/50 
-                           text-[11px] font-bold text-earth-dark 
-                           hover:bg-harbor/10 transition-all"
-              >
-                🔗 {item.link}
-              </a>
-            )}
-
+      <div className="space-y-6 overflow-x-hidden relative px-1">
+        {isEditMode && (currentDayData?.items?.length || 0) > 0 && (
+          <div className="flex justify-end mb-2 pr-1">
+            <button onClick={() => setShowTimeShiftModal(true)} className="text-[10px] font-bold text-stamp bg-stamp/10 px-4 py-2 rounded-full border border-stamp/20 flex items-center gap-2 hover:bg-stamp/20 transition-all shadow-sm"><i className="fa-solid fa-clock-rotate-left"></i> 時程調整</button>
           </div>
-
-          {isEditMode && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                updateScheduleCloud({
-                  ...fullSchedule,
-                  [selectedDate]: {
-                    ...currentDayData!,
-                    items: currentDayData!.items.filter(
-                      (i) => i.id !== item.id
-                    ),
-                  },
-                });
-              }}
-              className="w-10 h-10 rounded-full bg-stamp/10 text-stamp flex items-center justify-center active:scale-90 transition-all"
+        )}
+        {currentDayData?.items?.length > 0 ? currentDayData.items.map((item, index) => (
+          <div key={item.id} className="relative pl-16 pr-4 animate-in fade-in slide-in-from-left-2 duration-300 group">
+            {index < currentDayData.items.length - 1 && <div className="absolute left-[21px] top-1/2 h-[calc(100%+1.5rem)] border-l-2 border-dashed border-paper/60 z-0"></div>}
+          <div
+              className={`absolute left-0 top-1/2 -translate-y-1/2
+                w-12 h-12 rounded-[1.5rem]
+                border-[3px] border-white
+                shadow-lg z-10
+                flex items-center justify-center
+                ${CATEGORY_COLORS[item.category] || 'bg-ink'}`}
             >
-              <FontAwesomeIcon icon={FA.faTrashCan} className="text-sm" />
-            </button>
-          )}
-        </div>
+              <span className="text-white">
+                {getCategoryIcon(item.category)}
+              </span>
+            </div>
+            
+            <div
+              onClick={() => isEditMode && (setEditingItem(item), setShowEditModal(true))}
+              className={`bg-white rounded-[2rem] p-6 shadow-md border-2 border-paper/30
+                ${isEditMode ? 'hover:border-harbor/40 cursor-pointer' : ''}
+                transition-all flex justify-between items-center`}
+            >
+              <div className="flex-grow space-y-1 pl-2">  
+              <div className="text-sm font-bold text-earth-dark tracking-wide">{item.time}</div>
+                <h4 className="text-xl font-bold text-ink leading-tight">{item.location}</h4>
+                 {item.address && (<div onClick={(e) => { e.stopPropagation();openInGoogleMaps(item.address!)  }}
+                   className="text-[10px] font-bold text-harbor flex items-center gap-1.5 mt-1 cursor-pointer hover:underline" >
+                   <i className="fa-solid fa-location-dot"></i><span className="truncate max-w-[150px]">{item.address}</span> </div>)}
+               {item.transportMode && item.travelMinutes !== undefined && (
+                <div className="mt-1 flex items-center gap-2 text-[11px] font-bold text-earth-dark opacity-80">
+                  <span className="text-base leading-none">
+                    {item.transportMode === 'walk' && '🚶'}
+                    {item.transportMode === 'drive' && '🚗'}
+                    {item.transportMode === 'transit' && '🚇'}
+                    {item.transportMode === 'flight' && '🛫'}
+                  </span>
+                  <span>
+                    {item.transportMode === 'walk' && '步行'}
+                    {item.transportMode === 'drive' && '車程'}
+                    {item.transportMode === 'transit' && '捷運'}
+                    {item.transportMode === 'flight' && '飛行'}
+                    {' '}
+                    {(() => {
+                      const h = Math.floor(item.travelMinutes / 60);
+                      const m = item.travelMinutes % 60;
+                      if (h && m) return `${h} 小時 ${m} 分`;
+                      if (h) return `${h} 小時`;
+                      return `${m} 分`;
+                    })()}
+                  </span>
+                </div>
+              )}
+                {item.note && <p className="text-xs text-earth-dark font-normal mt-2 italic">{item.note}</p>}
+              </div>
+              {isEditMode && (
+                <button 
+                  onClick={(e) => { e.stopPropagation(); updateScheduleCloud({ ...fullSchedule, [selectedDate]: { ...currentDayData!, items: currentDayData!.items.filter(i => i.id !== item.id) } }); }}
+                  className="w-10 h-10 rounded-full bg-stamp/10 text-stamp flex items-center justify-center active:scale-90 transition-all"
+                >
+                 <FontAwesomeIcon icon={FA.faTrashCan} className="text-sm" />
+                </button>
+              )}
+            </div>
+          </div>
+        )) : (
+          <div className="py-20 text-center text-earth-dark/40 italic text-xs font-bold tracking-widest uppercase border-2 border-dashed border-paper/20 rounded-[3rem]">
+            {dates.length === 0 ? "請先點擊上方 + 號新增旅遊日期" : "本日尚無計畫"}
+          </div>
+        )}
+        {isEditMode && selectedDate && (
+          <div className="px-1">
+            <button onClick={() => { setEditingItem({ id: Date.now().toString(), time: '12:00', location: '',address: '', category: 'Attraction', note: '' }); setShowEditModal(true); }} className="w-full h-16 border-2 border-dashed border-paper rounded-[2rem] bg-white/40 flex items-center justify-center gap-2 text-ink font-bold active:scale-95 transition-all mt-4 text-xs shadow-md hover:bg-white hover:border-paper"><i className="fa-solid fa-plus-circle"></i> 新增行程項目</button>
+          </div>
+        )}
       </div>
-    ))
-  ) : (
-    <div className="py-20 text-center text-earth-dark/40 italic text-xs font-bold tracking-widest uppercase border-2 border-dashed border-paper/20 rounded-[3rem]">
-      {dates.length === 0
-        ? "請先點擊上方 + 號新增旅遊日期"
-        : "本日尚無計畫"}
-    </div>
-  )}
 
-  {isEditMode && selectedDate && (
-    <div className="px-1">
-      <button
-        onClick={() => {
-          setEditingItem({
-            id: Date.now().toString(),
-            time: '12:00',
-            location: '',
-            address: '',
-            category: 'Attraction',
-            note: '',
-          });
-          setShowEditModal(true);
-        }}
-        className="w-full h-16 border-2 border-dashed border-paper rounded-[2rem] bg-white/40 flex items-center justify-center gap-2 text-ink font-bold active:scale-95 transition-all mt-4 text-xs shadow-md hover:bg-white hover:border-paper"
-      >
-        <FontAwesomeIcon icon={FA.faPlus} className="text-xs" />
-        新增行程項目
-      </button>
-    </div>
-  )}
-
-</div>
       <Modal isOpen={showWeatherModal} onClose={() => setShowWeatherModal(false)} title="目的地設定">
         {tempMetadata && (
           <div className="space-y-6 overflow-x-hidden pb-4">
@@ -596,13 +509,13 @@ const getWeatherIcon = (condition: string, hour: string, temp: number) => {
         <div className="space-y-6 px-1 pb-4">
           <p className="text-xs text-ink font-bold leading-relaxed">一次將本日所有行程提前或延後。</p>
           <div className="flex items-center justify-center gap-4 bg-white p-6 rounded-[2rem] border-2 border-paper shadow-inner">
-             <button onClick={() => setShiftValue(Math.max(5, shiftValue - 5))} className="w-10 h-10 rounded-full bg-paper text-ink flex items-center justify-center"><FontAwesomeIcon icon={FA.faMinus} /></button>
+             <button onClick={() => setShiftValue(Math.max(5, shiftValue - 5))} className="w-10 h-10 rounded-full bg-paper text-ink flex items-center justify-center"><i className="fa-solid fa-minus"></i></button>
              <div className="text-center min-w-[100px]"><span className="text-4xl font-bold text-ink">{shiftValue}</span><span className="text-xs font-bold text-earth-dark block">分鐘</span></div>
-             <button onClick={() => setShiftValue(shiftValue + 5)} className="w-10 h-10 rounded-full bg-paper text-ink flex items-center justify-center"><FontAwesomeIcon icon={FA.faPlus} /></button>
+             <button onClick={() => setShiftValue(shiftValue + 5)} className="w-10 h-10 rounded-full bg-paper text-ink flex items-center justify-center"><i className="fa-solid fa-plus"></i></button>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <NordicButton onClick={() => handleTimeShift(-shiftValue)} variant="secondary" className="flex-col py-6"><FontAwesomeIcon icon={FA.faAnglesLeft} /><span>提前 {shiftValue}m</span></NordicButton>
-            <NordicButton onClick={() => handleTimeShift(shiftValue)} className="flex-col py-6 bg-stamp border-none"><FontAwesomeIcon icon={FA.faAnglesRight} /><span>延後 {shiftValue}m</span></NordicButton>
+            <NordicButton onClick={() => handleTimeShift(-shiftValue)} variant="secondary" className="flex-col py-6"><i className="fa-solid fa-angles-left mb-1"></i><span>提前 {shiftValue}m</span></NordicButton>
+            <NordicButton onClick={() => handleTimeShift(shiftValue)} className="flex-col py-6 bg-stamp border-none"><i className="fa-solid fa-angles-right mb-1"></i><span>延後 {shiftValue}m</span></NordicButton>
           </div>
         </div>
       </Modal>
@@ -632,12 +545,11 @@ const getWeatherIcon = (condition: string, hour: string, temp: number) => {
                       }} 
                       className="w-11 h-11 bg-ink text-white rounded-2xl flex items-center justify-center shadow-md active:scale-90"
                     >
-                      <FontAwesomeIcon icon={FA.faCheck} className="text-sm" />
+                      <i className="fa-solid fa-check text-sm"></i>
                     </button>
                   </div>
                 ) : (
-                  <><div className="flex flex-col pl-2"><span className="text-base font-bold text-ink tracking-tight">{date}</span><span className="text-[10px] text-earth-dark font-bold uppercase mt-0.5 opacity-70">{(fullSchedule[date]?.items?.length || 0)} 項目</span></div><div className="flex gap-2"><button onClick={() => { setDateToEdit(date); setDateRenameInput(date); }} className="w-11 h-11 rounded-xl bg-paper/40 text-ink flex items-center justify-center shadow-sm"><FontAwesomeIcon icon={FA.faPen} className="text-xs" /></button><button onClick={() => { if (dates.length > 1) { const next = { ...fullSchedule }; delete next[date]; updateScheduleCloud(next); } }} className="w-11 h-11 rounded-xl bg-stamp/10 text-stamp flex items-center justify-center shadow-sm"><FontAwesomeIcon icon={FA.faTrashCan} className="mr-2" />
-                      </button></div></>
+                  <><div className="flex flex-col pl-2"><span className="text-base font-bold text-ink tracking-tight">{date}</span><span className="text-[10px] text-earth-dark font-bold uppercase mt-0.5 opacity-70">{(fullSchedule[date]?.items?.length || 0)} 項目</span></div><div className="flex gap-2"><button onClick={() => { setDateToEdit(date); setDateRenameInput(date); }} className="w-11 h-11 rounded-xl bg-paper/40 text-ink flex items-center justify-center shadow-sm"><i className="fa-solid fa-pen text-xs"></i></button><button onClick={() => { if (dates.length > 1) { const next = { ...fullSchedule }; delete next[date]; updateScheduleCloud(next); } }} className="w-11 h-11 rounded-xl bg-stamp/10 text-stamp flex items-center justify-center shadow-sm"><i className="fa-solid fa-trash-can text-xs"></i></button></div></>
                 )}
               </div>
             ))}
@@ -653,98 +565,141 @@ const getWeatherIcon = (condition: string, hour: string, temp: number) => {
         </div>
       </Modal>
 
-<Modal
-  isOpen={showEditModal}
-  onClose={() => setShowEditModal(false)}
-  title="行程細節設定"
->
-  {editingItem && (
-    <div className="space-y-6 px-1 pb-6 overflow-x-hidden">
-
-      <div className="space-y-2">
-        <label className="text-[10px] font-bold text-earth-dark uppercase pl-1">
-          項目名稱
-        </label>
-        <input
-          type="text"
-          value={editingItem.location}
-          onChange={(e) =>
-            setEditingItem({ ...editingItem, location: e.target.value })
-          }
-          className="w-full h-[56px] p-5 bg-white border-2 border-paper rounded-[2rem] font-bold text-ink shadow-sm"
-        />
-      </div>
-
-      <div className="space-y-2">
-        <label className="text-[10px] font-bold text-earth-dark uppercase pl-1">
-          相關連結
-        </label>
-        <input
-          type="url"
-          value={editingItem.link || ''}
-          onChange={(e) =>
-            setEditingItem({
-              ...editingItem,
-              link: e.target.value,
-            })
-          }
-          className="w-full h-[56px] p-5 bg-white border-2 border-paper rounded-[2rem] font-bold text-ink shadow-sm"
-          placeholder="https://..."
-        />
-      </div>
-
-      <div className="pt-2">
-        <NordicButton
-          onClick={() => {
-            const rawLink = editingItem.link?.trim();
-
-            let formattedLink: string | undefined;
-            
-            if (rawLink) {
-              if (!rawLink.startsWith('http')) {
-                formattedLink = 'https://' + rawLink;
-              } else {
-                formattedLink = rawLink;
-              }
-            } else {
-              formattedLink = undefined;
-            }
-
-            const updatedItem = {
-              ...editingItem,
-              link: formattedLink,
-            };
-
-            const next = { ...fullSchedule };
-
-            Object.keys(next).forEach((d) => {
-              if (next[d]?.items) {
-                next[d].items = next[d].items.filter(
-                  (i) => i.id !== updatedItem.id
-                );
-              }
-            });
-
-            if (next[selectedDate]) {
-              next[selectedDate].items = [
-                ...(next[selectedDate].items || []),
-                updatedItem,
-              ].sort((a, b) => a.time.localeCompare(b.time));
-            }
-
-            updateScheduleCloud(next);
-            setShowEditModal(false);
-          }}
-          className="w-full py-5 bg-ink text-white font-bold"
-        >
-          儲存行程細節
-        </NordicButton>
-      </div>
-
-    </div>
-  )}
-</Modal>
-
+      <Modal isOpen={showEditModal} onClose={() => setShowEditModal(false)} title="行程細節設定">
+        {editingItem && (
+          <div className="space-y-6 px-1 pb-6 overflow-x-hidden">
+            <div className="space-y-2"><label className="text-[10px] font-bold text-earth-dark uppercase pl-1">項目名稱</label><input type="text" value={editingItem.location} onChange={(e) => setEditingItem({...editingItem, location: e.target.value})} className="w-full h-[56px] p-5 bg-white border-2 border-paper rounded-[2rem] font-bold text-ink shadow-sm" /></div>
+            <div className="space-y-2">
+  <label className="text-[10px] font-bold text-earth-dark uppercase pl-1">
+    地點地址 (Google Map)
+  </label>
+  <input
+    type="text"
+    value={editingItem.address || ''}
+    onChange={(e) =>
+      setEditingItem({ ...editingItem, address: e.target.value })
+    }
+    className="w-full h-[56px] p-5 bg-white border-2 border-paper rounded-[2rem] font-bold text-ink shadow-sm"
+    placeholder="輸入詳細地址或地標..."
+  />
+</div>
+             <div className="space-y-2"><label className="text-[10px] font-bold text-earth-dark uppercase pl-1">預計時間</label><input type="time" value={editingItem.time} onChange={(e) => setEditingItem({...editingItem, time: e.target.value})} className="w-full h-[56px] p-5 bg-white border-2 border-paper rounded-[2rem] font-bold text-ink shadow-sm text-center" /></div>
+               {/* 交通方式 */}
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-earth-dark uppercase pl-1">
+                    交通方式
+                  </label>
+                
+                  <div className="flex gap-2 bg-white/60 border-2 border-paper rounded-[2rem] p-2 shadow-inner">
+                    {TRANSPORT_OPTIONS.map(opt => {
+                      const active = editingItem.transportMode === opt.key;
+                
+                      return (
+                        <button
+                          key={opt.key}
+                          onClick={() =>
+                            setEditingItem({
+                              ...editingItem,
+                              transportMode: opt.key,
+                            })
+                          }
+                          className={`
+                            flex-1 h-[56px]
+                            rounded-[1.5rem]
+                            flex flex-col items-center justify-center gap-1
+                            transition-all duration-200
+                            ${
+                              active
+                                ? 'bg-ink text-white shadow-md scale-[1.02]'
+                                : 'bg-white text-earth-dark/60 hover:bg-paper/60'
+                            }
+                            active:scale-95
+                          `}
+                        >
+                          <span className="text-2xl leading-none">
+                            {opt.emoji}
+                          </span>
+                          <span className="text-[9px] font-bold tracking-wide">
+                            {opt.label}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+            {/* 移動時間 */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-earth-dark uppercase pl-1">
+                  移動時間
+                </label>
+              
+                {(() => {
+                  const { h, m } = minutesToHM(editingItem.travelMinutes);
+              
+                  return (
+                    <div className="flex gap-3">
+                      {/* 小時 */}
+                      <div className="relative flex-1">
+                        <input
+                          type="number"
+                          min={0}
+                          value={h}
+                          onChange={(e) =>
+                            setEditingItem({
+                              ...editingItem,
+                              travelMinutes: hmToMinutes(e.target.value, m),
+                            })
+                          }
+                          placeholder="0"
+                          className="w-full h-[56px] p-5 pr-10 bg-white border-2 border-paper rounded-[2rem] font-bold text-ink shadow-sm text-center"
+                        />
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-earth-dark opacity-60">
+                          小時
+                        </span>
+                      </div>
+              
+                      {/* 分鐘 */}
+                      <div className="relative flex-1">
+                        <input
+                          type="number"
+                          min={0}
+                          max={59}
+                          step={5}
+                          value={m}
+                          onChange={(e) =>
+                            setEditingItem({
+                              ...editingItem,
+                              travelMinutes: hmToMinutes(h, e.target.value),
+                            })
+                          }
+                          placeholder="0"
+                          className="w-full h-[56px] p-5 pr-10 bg-white border-2 border-paper rounded-[2rem] font-bold text-ink shadow-sm text-center"
+                        />
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-earth-dark opacity-60">
+                          分
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold text-earth-dark uppercase pl-1">行程類別</label>
+              <div className="grid grid-cols-6 gap-2 p-2 bg-white border-2 border-paper rounded-[1.5rem] shadow-sm">
+                {categoryList.map(cat => (<button key={cat} onClick={() => setEditingItem({...editingItem, category: cat})} className={`aspect-square rounded-xl flex items-center justify-center transition-all ${editingItem.category === cat ? `${CATEGORY_COLORS[cat] || 'bg-ink'} text-white shadow-md` : 'text-earth/50'}`}>
+                  <span className={editingItem.category === cat ? 'text-white' : 'text-earth/50'}>
+                    {getCategoryIcon(cat)}
+                  </span></button>))}
+              </div>
+            </div>
+            <div className="space-y-2"><label className="text-[10px] font-bold text-earth-dark uppercase pl-1">行程備註細節</label><textarea value={editingItem.note} onChange={(e) => setEditingItem({...editingItem, note: e.target.value})} className="w-full p-5 bg-white border-2 border-paper rounded-[2rem] text-sm text-ink min-h-[100px] shadow-sm" /></div>
+            <div className="pt-2 space-y-3">
+              <NordicButton onClick={() => { const next = { ...fullSchedule }; Object.keys(next).forEach(d => { if (next[d]?.items) next[d].items = next[d].items.filter(i => i.id !== editingItem.id); }); if (next[selectedDate]) next[selectedDate].items = [...(next[selectedDate].items || []), editingItem].sort((a, b) => a.time.localeCompare(b.time)); updateScheduleCloud(next); setShowEditModal(false); }} className="w-full py-5 bg-ink text-white font-bold">儲存行程細節</NordicButton>
+              <button onClick={() => { updateScheduleCloud({ ...fullSchedule, [selectedDate]: { ...currentDayData!, items: (currentDayData!.items || []).filter(i => i.id !== editingItem.id) } }); setShowEditModal(false); }} className="w-full py-3 text-stamp font-bold text-xs uppercase hover:underline"><i className="fa-solid fa-trash-can mr-2"></i> 刪除此項行程</button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };
