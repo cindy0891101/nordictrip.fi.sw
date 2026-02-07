@@ -384,44 +384,66 @@ const getWeatherIcon = (condition: string, hour: string, temp: number) => {
               <div className="flex-grow space-y-1 pl-2">  
               <div className="text-sm font-bold text-earth-dark tracking-wide">{item.time}</div>
                 <div className="flex items-start justify-between gap-3">
-                <h4 className="text-xl font-bold text-ink leading-tight">{item.location}</h4>
-                {item.link && (<a
-                    href={item.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    className="flex items-center gap-1.5 px-2.5 py-1 
-                               rounded-full bg-paper/70 border border-paper
-                               text-[10px] font-bold text-earth-dark
-                               hover:bg-harbor/10 transition-all shrink-0"
-                  >
-                    {(() => {
-                      try {
-                        const url = new URL(item.link as string);
-                        const domain = url.hostname.replace('www.', '');
-              
-                        return (
-                          <>
-                            <img
-                              src={`https://www.google.com/s2/favicons?sz=64&domain=${domain}`}
-                              alt=""
-                              className="w-3.5 h-3.5"
-                            />
-                            <span>{domain}</span>
-                            <i className="fa-solid fa-arrow-up-right-from-square text-[9px] opacity-50"></i>
-                          </>
-                        );
-                      } catch {
-                        return (
-                          <>
-                            <i className="fa-solid fa-link text-[9px]"></i>
-                          </>
-                        );
-                      }
-                    })()}
-                  </a>
-                )}
-              </div>
+              <div className="flex items-start justify-between gap-3">
+              <h4 className="text-xl font-bold text-ink leading-tight">{item.location}</h4>
+              {item.link && (
+                <a
+                  href={item.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="group relative flex items-center
+                             bg-paper/40 backdrop-blur-sm
+                             border border-paper/60
+                             rounded-full
+                             px-2 py-1
+                             transition-all duration-300
+                             hover:bg-white hover:border-paper"
+                >
+                  {(() => {
+                    try {
+                      const url = new URL(item.link as string);
+                      const domain = url.hostname.replace('www.', '');
+            
+                      return (
+                        <>
+                          {/* favicon */}
+                          <img
+                            src={`https://www.google.com/s2/favicons?sz=64&domain=${domain}`}
+                            alt=""
+                            className="w-3.5 h-3.5 rounded-full"
+                          />
+            
+                          {/* domain（滑出效果） */}
+                          <span
+                            className="ml-2 text-[11px] font-semibold text-ink
+                                       max-w-0 overflow-hidden
+                                       group-hover:max-w-[140px]
+                                       opacity-0 group-hover:opacity-100
+                                       transition-all duration-300
+                                       whitespace-nowrap"
+                          >
+                            {domain}
+                          </span>
+            
+                          {/* 外連 icon */}
+                          <i
+                            className="fa-solid fa-arrow-up-right-from-square
+                                       text-[9px] ml-1
+                                       opacity-0 group-hover:opacity-50
+                                       transition-all duration-300"
+                          ></i>
+                        </>
+                      );
+                    } catch {
+                      return (
+                        <i className="fa-solid fa-link text-[10px] text-earth-dark"></i>
+                      );
+                    }
+                  })()}
+                </a>
+              )}
+            </div>
                  {item.address && (<div onClick={(e) => { e.stopPropagation();openInGoogleMaps(item.address!)  }}
                    className="text-[10px] font-bold text-harbor flex items-center gap-1.5 mt-1 cursor-pointer hover:underline" >
                    <i className="fa-solid fa-location-dot"></i><span className="truncate max-w-[150px]">{item.address}</span> </div>)}
