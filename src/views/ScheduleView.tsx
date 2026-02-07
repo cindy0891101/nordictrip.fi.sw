@@ -411,6 +411,30 @@ const getWeatherIcon = (condition: string, hour: string, temp: number) => {
                   </span>
                 </div>
               )}
+                {item.link && (
+                  <a
+                    href={item.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="inline-flex items-center gap-2 mt-2 px-3 py-1.5 
+                               rounded-full bg-paper border border-paper/50 
+                               text-[11px] font-bold text-earth-dark 
+                               hover:bg-harbor/10 transition-all"
+                  >
+                    <i className="fa-solid fa-link text-xs"></i>
+                    <span>
+                      {(() => {
+                        try {
+                          return new URL(item.link).hostname.replace('www.', '');
+                        } catch {
+                          return item.link;
+                        }
+                      })()}
+                    </span>
+                  </a>
+                )}
+                
                 {item.note && <p className="text-xs text-earth-dark font-normal mt-2 italic">{item.note}</p>}
               </div>
               {isEditMode && (
@@ -570,19 +594,33 @@ const getWeatherIcon = (condition: string, hour: string, temp: number) => {
           <div className="space-y-6 px-1 pb-6 overflow-x-hidden">
             <div className="space-y-2"><label className="text-[10px] font-bold text-earth-dark uppercase pl-1">項目名稱</label><input type="text" value={editingItem.location} onChange={(e) => setEditingItem({...editingItem, location: e.target.value})} className="w-full h-[56px] p-5 bg-white border-2 border-paper rounded-[2rem] font-bold text-ink shadow-sm" /></div>
             <div className="space-y-2">
-  <label className="text-[10px] font-bold text-earth-dark uppercase pl-1">
-    地點地址 (Google Map)
-  </label>
-  <input
-    type="text"
-    value={editingItem.address || ''}
-    onChange={(e) =>
-      setEditingItem({ ...editingItem, address: e.target.value })
-    }
-    className="w-full h-[56px] p-5 bg-white border-2 border-paper rounded-[2rem] font-bold text-ink shadow-sm"
-    placeholder="輸入詳細地址或地標..."
-  />
-</div>
+              <label className="text-[10px] font-bold text-earth-dark uppercase pl-1">
+                地點地址 (Google Map)
+              </label>
+              <input
+                type="text"
+                value={editingItem.address || ''}
+                onChange={(e) =>
+                  setEditingItem({ ...editingItem, address: e.target.value })
+                }
+                className="w-full h-[56px] p-5 bg-white border-2 border-paper rounded-[2rem] font-bold text-ink shadow-sm"
+                placeholder="輸入詳細地址或地標..."
+              />
+            </div>
+                        <div className="space-y-2">
+              <label className="text-[10px] font-bold text-earth-dark uppercase pl-1">
+                相關連結
+              </label>
+              <input
+                type="url"
+                value={editingItem.link || ''}
+                onChange={(e) =>
+                  setEditingItem({ ...editingItem, link: e.target.value })
+                }
+                className="w-full h-[56px] p-5 bg-white border-2 border-paper rounded-[2rem] font-bold text-ink shadow-sm"
+                placeholder="https://example.com"
+              />
+            </div>
              <div className="space-y-2"><label className="text-[10px] font-bold text-earth-dark uppercase pl-1">預計時間</label><input type="time" value={editingItem.time} onChange={(e) => setEditingItem({...editingItem, time: e.target.value})} className="w-full h-[56px] p-5 bg-white border-2 border-paper rounded-[2rem] font-bold text-ink shadow-sm text-center" /></div>
                {/* 交通方式 */}
                 <div className="space-y-2">
@@ -694,7 +732,47 @@ const getWeatherIcon = (condition: string, hour: string, temp: number) => {
             </div>
             <div className="space-y-2"><label className="text-[10px] font-bold text-earth-dark uppercase pl-1">行程備註細節</label><textarea value={editingItem.note} onChange={(e) => setEditingItem({...editingItem, note: e.target.value})} className="w-full p-5 bg-white border-2 border-paper rounded-[2rem] text-sm text-ink min-h-[100px] shadow-sm" /></div>
             <div className="pt-2 space-y-3">
-              <NordicButton onClick={() => { const next = { ...fullSchedule }; Object.keys(next).forEach(d => { if (next[d]?.items) next[d].items = next[d].items.filter(i => i.id !== editingItem.id); }); if (next[selectedDate]) next[selectedDate].items = [...(next[selectedDate].items || []), editingItem].sort((a, b) => a.time.localeCompare(b.time)); updateScheduleCloud(next); setShowEditModal(false); }} className="w-full py-5 bg-ink text-white font-bold">儲存行程細節</NordicButton>
+              <NordicButton
+                      onClick={() => {
+                        const rawLink = editingItem.link?.trim();
+                    
+                        let formattedLink: string | undefined;
+                    
+                        if (rawLink) {
+                          if (!rawLink.startsWith('http')) {
+                            formattedLink = 'https://' + rawLink;
+                          } else {
+                            formattedLink = rawLink;
+                          }
+                        } else {
+                          formattedLink = undefined;
+                        }
+                    
+                        const updatedItem = {
+                          ...editingItem,
+                          link: formattedLink,
+                        };
+                    
+                        const next = { ...fullSchedule };
+                    
+                        Object.keys(next).forEach(d => {
+                          if (next[d]?.items)
+                            next[d].items = next[d].items.filter(i => i.id !== updatedItem.id);
+                        });
+                    
+                        if (next[selectedDate])
+                          next[selectedDate].items = [
+                            ...(next[selectedDate].items || []),
+                            updatedItem
+                          ].sort((a, b) => a.time.localeCompare(b.time));
+                    
+                        updateScheduleCloud(next);
+                        setShowEditModal(false);
+                      }}
+                      className="w-full py-5 bg-ink text-white font-bold"
+                    >
+                      儲存行程細節
+                    </NordicButton>
               <button onClick={() => { updateScheduleCloud({ ...fullSchedule, [selectedDate]: { ...currentDayData!, items: (currentDayData!.items || []).filter(i => i.id !== editingItem.id) } }); setShowEditModal(false); }} className="w-full py-3 text-stamp font-bold text-xs uppercase hover:underline"><i className="fa-solid fa-trash-can mr-2"></i> 刪除此項行程</button>
             </div>
           </div>
