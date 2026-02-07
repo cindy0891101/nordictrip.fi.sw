@@ -361,25 +361,11 @@ const getWeatherIcon = (condition: string, hour: string, temp: number) => {
             <button onClick={() => setShowTimeShiftModal(true)} className="text-[10px] font-bold text-stamp bg-stamp/10 px-4 py-2 rounded-full border border-stamp/20 flex items-center gap-2 hover:bg-stamp/20 transition-all shadow-sm"><FontAwesomeIcon icon={FA.faClockRotateLeft} /> 時程調整</button>
           </div>
         )}
-        {currentDayData?.items?.length > 0 ? currentDayData.items.map((item, index) => (
-          <div key={item.id} className="relative pl-16 pr-4 animate-in fade-in slide-in-from-left-2 duration-300 group">
-            {index < currentDayData.items.length - 1 && <div className="absolute left-[21px] top-1/2 h-[calc(100%+1.5rem)] border-l-2 border-dashed border-paper/60 z-0"></div>}
-          <div
-              className={`absolute left-0 top-1/2 -translate-y-1/2
-                w-12 h-12 rounded-[1.5rem]
-                border-[3px] border-white
-                shadow-lg z-10
-                flex items-center justify-center
-                ${CATEGORY_COLORS[item.category] || 'bg-ink'}`}
-            >
-              <span className="text-white">
-                {getCategoryIcon(item.category)}
-              </span>
-            </div>
-                ))  /* 👈 關 map */
-                  : (   /* 👈 else */
 <div
-  onClick={() => isEditMode && (setEditingItem(item), setShowEditModal(true))}
+  onClick={() =>
+    isEditMode &&
+    (setEditingItem(item), setShowEditModal(true))
+  }
   className={`bg-white rounded-[2rem] p-6 shadow-md border-2 border-paper/30
     ${isEditMode ? 'hover:border-harbor/40 cursor-pointer' : ''}
     transition-all flex justify-between items-center`}
@@ -402,7 +388,9 @@ const getWeatherIcon = (condition: string, hour: string, temp: number) => {
         className="text-[10px] font-bold text-harbor flex items-center gap-1.5 mt-1 cursor-pointer hover:underline"
       >
         <FontAwesomeIcon icon={FA.faLocationDot} />
-        <span className="truncate max-w-[150px]">{item.address}</span>
+        <span className="truncate max-w-[150px]">
+          {item.address}
+        </span>
       </div>
     )}
 
@@ -413,6 +401,23 @@ const getWeatherIcon = (condition: string, hour: string, temp: number) => {
           {item.transportMode === 'drive' && '🚗'}
           {item.transportMode === 'transit' && '🚇'}
           {item.transportMode === 'flight' && '🛫'}
+        </span>
+
+        <span>
+          {item.transportMode === 'walk' && '步行'}
+          {item.transportMode === 'drive' && '計程車'}
+          {item.transportMode === 'transit' && '大眾交通'}
+          {item.transportMode === 'flight' && '飛行'}
+          {' '}
+
+          {(() => {
+            const h = Math.floor(item.travelMinutes / 60);
+            const m = item.travelMinutes % 60;
+
+            if (h && m) return `${h} 小時 ${m} 分`;
+            if (h) return `${h} 小時`;
+            return `${m} 分`;
+          })()}
         </span>
       </div>
     )}
@@ -430,7 +435,7 @@ const getWeatherIcon = (condition: string, hour: string, temp: number) => {
         🔗 {item.link}
       </a>
     )}
-  </div>   {/* 👈 這個是你缺的 closing tag */}
+  </div>
 
   {isEditMode && (
     <button
@@ -452,7 +457,6 @@ const getWeatherIcon = (condition: string, hour: string, temp: number) => {
     </button>
   )}
 </div>
-
       <Modal isOpen={showWeatherModal} onClose={() => setShowWeatherModal(false)} title="目的地設定">
         {tempMetadata && (
           <div className="space-y-6 overflow-x-hidden pb-4">
