@@ -411,29 +411,43 @@ const getWeatherIcon = (condition: string, hour: string, temp: number) => {
                   </span>
                 </div>
               )}
-                {item.link && (
-                  <a
-                    href={item.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    className="inline-flex items-center gap-2 mt-2 px-3 py-1.5 
-                               rounded-full bg-paper border border-paper/50 
-                               text-[11px] font-bold text-earth-dark 
-                               hover:bg-harbor/10 transition-all"
-                  >
-                    <i className="fa-solid fa-link text-xs"></i>
-                    <span>
-                      {(() => {
-                        try {
-                          return new URL(item.link).hostname.replace('www.', '');
-                        } catch {
-                          return item.link;
-                        }
-                      })()}
-                    </span>
-                  </a>
-                )}
+              {item.link && (
+                <a
+                  href={item.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="inline-flex items-center gap-2 mt-2 px-3 py-1.5 
+                             rounded-full bg-paper border border-paper/50 
+                             text-[11px] font-bold text-earth-dark 
+                             hover:bg-harbor/10 transition-all"
+                >
+                  {(() => {
+                    try {
+                      const url = new URL(item.link as string);
+                      const domain = url.hostname.replace('www.', '');
+              
+                      return (
+                        <>
+                          <img
+                            src={`https://www.google.com/s2/favicons?sz=64&domain=${domain}`}
+                            alt=""
+                            className="w-4 h-4 rounded-sm"
+                          />
+                          <span>{domain}</span>
+                        </>
+                      );
+                    } catch {
+                      return (
+                        <>
+                          <i className="fa-solid fa-link text-xs"></i>
+                          <span>{item.link}</span>
+                        </>
+                      );
+                    }
+                  })()}
+                </a>
+              )}
                 
                 {item.note && <p className="text-xs text-earth-dark font-normal mt-2 italic">{item.note}</p>}
               </div>
