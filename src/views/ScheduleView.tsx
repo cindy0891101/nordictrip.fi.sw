@@ -384,7 +384,6 @@ const getWeatherIcon = (condition: string, hour: string, temp: number) => {
               <div className="flex-grow space-y-1 pl-2">  
               <div className="text-sm font-bold text-earth-dark tracking-wide">{item.time}</div>
                 <div className="flex items-start justify-between gap-3">
-              <div className="flex items-start justify-between gap-3">
               <h4 className="text-xl font-bold text-ink leading-tight">{item.location}</h4>
               {item.link && (
                 <a
