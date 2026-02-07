@@ -761,23 +761,30 @@ const getWeatherIcon = (condition: string, hour: string, temp: number) => {
             </div>
           </div>
           <div className="space-y-2">
-              <label className="text-[10px] font-bold text-earth-dark uppercase pl-1">
-                相關連結
-              </label>
-              <input
-                type="url"
-                value={editingItem.link || ''}
-                onChange={(e) =>
-                  setEditingItem({
-                    ...editingItem,
-                    link: e.target.value,
-                  })
-                }
-                className="w-full h-[56px] p-5 bg-white border-2 border-paper rounded-[2rem] font-bold text-ink shadow-sm"
-                placeholder="https://..."
-              />
-            </div>
-        )}
+                  <label className="text-[10px] font-bold text-earth-dark uppercase pl-1">
+                    相關連結
+                  </label>
+                  <input
+                    type="url"
+                    value={editingItem.link || ''}
+                    onChange={(e) =>
+                      setEditingItem({
+                        ...editingItem,
+                        link: e.target.value,
+                      })
+                    }
+                    className="w-full h-[56px] p-5 bg-white border-2 border-paper rounded-[2rem] font-bold text-ink shadow-sm"
+                    placeholder="https://..."
+                  />
+                </div>
+            
+                <div className="pt-2 space-y-3">
+                  <NordicButton ... />
+                  <button ... />
+                </div>
+            
+              </div>
+)}
       </Modal>
     </div>
   );
