@@ -634,10 +634,17 @@ const getWeatherIcon = (condition: string, hour: string, temp: number) => {
           onClick={() => {
             const rawLink = editingItem.link?.trim();
 
-            const formattedLink =
-              rawLink && !rawLink.startsWith('http')
-                ? `https://${rawLink}`
-                : rawLink || undefined;
+            let formattedLink: string | undefined;
+            
+            if (rawLink) {
+              if (!rawLink.startsWith('http')) {
+                formattedLink = 'https://' + rawLink;
+              } else {
+                formattedLink = rawLink;
+              }
+            } else {
+              formattedLink = undefined;
+            }
 
             const updatedItem = {
               ...editingItem,
