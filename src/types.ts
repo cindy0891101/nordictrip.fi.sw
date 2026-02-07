@@ -16,6 +16,7 @@ export interface ScheduleItem {
   address?: string;
   travelMinutes?: number;      // 原本 driveMinutes → 改更通用
   transportMode?: TransportMode;
+  link?: string;
 }
 
 export interface WeatherInfo {
