@@ -79,22 +79,17 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ isEditMode, onToggleLock })
 
 useEffect(() => {
   const unsubscribe = dbService.subscribeField('schedule', (data) => {
-    if (!data || typeof data !== 'object') return;
+    if (!data || typeof data !== 'object') {
+      setFullSchedule({});
+      return;
+    }
 
-    setFullSchedule(prev => {
-      if (JSON.stringify(prev) === JSON.stringify(data)) {
-        return prev;
-      }
-      return data;
-    });
+    setFullSchedule(data);
   });
 
-  return () => {
-    if (typeof unsubscribe === 'function') {
-      unsubscribe();
-    }
-  };
+  return () => unsubscribe();
 }, []);
+
 
   const dates = useMemo(() => Object.keys(fullSchedule || {}).sort(), [fullSchedule]);
   const [selectedDate, setSelectedDate] = useState(dates[0] || '');
@@ -607,7 +602,6 @@ const getWeatherIcon = (condition: string, hour: string, temp: number) => {
                         const next = { ...fullSchedule }; 
                         next[dateRenameInput] = { ...next[date] }; 
                         delete next[date]; 
-                        updateScheduleCloud(next); 
                         setDateToEdit(null); 
                       }} 
                       className="w-11 h-11 bg-ink text-white rounded-2xl flex items-center justify-center shadow-md active:scale-90"
@@ -616,7 +610,7 @@ const getWeatherIcon = (condition: string, hour: string, temp: number) => {
                     </button>
                   </div>
                 ) : (
-                  <><div className="flex flex-col pl-2"><span className="text-base font-bold text-ink tracking-tight">{date}</span><span className="text-[10px] text-earth-dark font-bold uppercase mt-0.5 opacity-70">{(fullSchedule[date]?.items?.length || 0)} 項目</span></div><div className="flex gap-2"><button onClick={() => { setDateToEdit(date); setDateRenameInput(date); }} className="w-11 h-11 rounded-xl bg-paper/40 text-ink flex items-center justify-center shadow-sm"><i className="fa-solid fa-pen text-xs"></i></button><button onClick={() => { if (dates.length > 1) { const next = { ...fullSchedule }; delete next[date]; updateScheduleCloud(next); } }} className="w-11 h-11 rounded-xl bg-stamp/10 text-stamp flex items-center justify-center shadow-sm"><i className="fa-solid fa-trash-can text-xs"></i></button></div></>
+                  <><div className="flex flex-col pl-2"><span className="text-base font-bold text-ink tracking-tight">{date}</span><span className="text-[10px] text-earth-dark font-bold uppercase mt-0.5 opacity-70">{(fullSchedule[date]?.items?.length || 0)} 項目</span></div><div className="flex gap-2"><button onClick={() => { setDateToEdit(date); setDateRenameInput(date); }} className="w-11 h-11 rounded-xl bg-paper/40 text-ink flex items-center justify-center shadow-sm"><i className="fa-solid fa-pen text-xs"></i></button><button onClick={() => { if (dates.length > 1) { const next = { ...fullSchedule }; delete next[date];} }} className="w-11 h-11 rounded-xl bg-stamp/10 text-stamp flex items-center justify-center shadow-sm"><i className="fa-solid fa-trash-can text-xs"></i></button></div></>
                 )}
               </div>
             ))}
@@ -628,7 +622,27 @@ const getWeatherIcon = (condition: string, hour: string, temp: number) => {
       <Modal isOpen={showDateModal} onClose={() => setShowDateModal(false)} title="新增日期">
         <div className="space-y-4 overflow-x-hidden px-1 pb-4">
           <input type="date" value={newDateInput} onChange={(e) => setNewDateInput(e.target.value)} className="w-full h-[56px] p-6 bg-white border-2 border-paper rounded-[2rem] font-bold text-ink text-center" />
-          <NordicButton onClick={() => { if (!newDateInput || fullSchedule[newDateInput]) return; updateScheduleCloud({...fullSchedule, [newDateInput]: { items: [], metadata: { locationName: '新目的地', forecast: MOCK_WEATHER.map(w => ({ ...w, feelsLike: w.temp - 2 })), isLive: false } } }); setSelectedDate(newDateInput); setShowDateModal(false); setNewDateInput(''); }} className="w-full py-5 bg-stamp text-white text-sm font-bold uppercase tracking-widest">確定新增日期</NordicButton>
+          <NordicButton onClick={() => { if (!newDateInput || fullSchedule[newDateInput]) return; 
+                                      setFullSchedule(prev => {
+                                      const next = {
+                                      ...prev,
+                                      [newDateInput]: {
+                                        items: [],
+                                        metadata: {
+                                          locationName: '新目的地',
+                                          forecast: MOCK_WEATHER.map(w => ({
+                                            ...w,
+                                            feelsLike: w.temp - 2
+                                          })),
+                                          isLive: false
+                                        }
+                                      }
+                                    };
+                                  
+                                    dbService.updateField('schedule', next);
+                                    return next;
+                                    }); 
+                            setSelectedDate(newDateInput); setShowDateModal(false); setNewDateInput(''); }} className="w-full py-5 bg-stamp text-white text-sm font-bold uppercase tracking-widest">確定新增日期</NordicButton>
         </div>
       </Modal>
 
@@ -791,25 +805,28 @@ const getWeatherIcon = (condition: string, hour: string, temp: number) => {
                           formattedLink = undefined;
                         }
                     
-                        const updatedItem = {
-                          ...editingItem,
-                          link: formattedLink,
-                        };
-                    
-                        const next = { ...fullSchedule };
-                    
-                        Object.keys(next).forEach(d => {
-                          if (next[d]?.items)
-                            next[d].items = next[d].items.filter(i => i.id !== updatedItem.id);
+                        setFullSchedule(prev => {
+                          const next = { ...prev };
+                        
+                          Object.keys(next).forEach(d => {
+                            if (next[d]?.items) {
+                              next[d].items = next[d].items.filter(
+                                i => i.id !== updatedItem.id
+                              );
+                            }
+                          });
+                        
+                          if (next[selectedDate]) {
+                            next[selectedDate].items = [
+                              ...(next[selectedDate].items || []),
+                              updatedItem
+                            ].sort((a, b) => a.time.localeCompare(b.time));
+                          }
+                        
+                          dbService.updateField('schedule', next);
+                        
+                          return next;
                         });
-                    
-                        if (next[selectedDate])
-                          next[selectedDate].items = [
-                            ...(next[selectedDate].items || []),
-                            updatedItem
-                          ].sort((a, b) => a.time.localeCompare(b.time));
-                    
-                        updateScheduleCloud(next);
                         setShowEditModal(false);
                       }}
                       className="w-full py-5 bg-ink text-white font-bold"
