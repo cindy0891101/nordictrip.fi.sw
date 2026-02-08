@@ -786,41 +786,45 @@ const getWeatherIcon = (condition: string, hour: string, temp: number) => {
             <div className="pt-2 space-y-3">
               <NordicButton
                       onClick={() => {
-                        const rawLink = editingItem.link?.trim();
-                    
-                        let formattedLink: string | undefined;
-                    
-                        if (rawLink) {
-                          if (!rawLink.startsWith('http')) {
-                            formattedLink = 'https://' + rawLink;
-                          } else {
-                            formattedLink = rawLink;
+                          const rawLink = editingItem.link?.trim();
+                        
+                          let formattedLink: string | undefined;
+                        
+                          if (rawLink) {
+                            formattedLink = rawLink.startsWith('http')
+                              ? rawLink
+                              : 'https://' + rawLink;
                           }
-                        } else {
-                          formattedLink = undefined;
-                        }
-                    
-                        const updatedItem = {
-                          ...editingItem,
-                          link: formattedLink,
-                        };
-                    
-                        const next = { ...fullSchedule };
-                    
-                        Object.keys(next).forEach(d => {
-                          if (next[d]?.items)
+                        
+                          // 👇 完整安全版
+                          const updatedItem: any = {
+                            id: editingItem.id,
+                            time: editingItem.time,
+                            location: editingItem.location,
+                            category: editingItem.category,
+                          };
+                        
+                          if (editingItem.address) updatedItem.address = editingItem.address;
+                          if (formattedLink) updatedItem.link = formattedLink;
+                          if (editingItem.note) updatedItem.note = editingItem.note;
+                          if (editingItem.transportMode) updatedItem.transportMode = editingItem.transportMode;
+                          if (editingItem.travelMinutes !== undefined)
+                            updatedItem.travelMinutes = editingItem.travelMinutes;
+                        
+                          const next = { ...fullSchedule };
+                        
+                          Object.keys(next).forEach(d => {
                             next[d].items = next[d].items.filter(i => i.id !== updatedItem.id);
-                        });
-                    
-                        if (next[selectedDate])
+                          });
+                        
                           next[selectedDate].items = [
                             ...(next[selectedDate].items || []),
                             updatedItem
                           ].sort((a, b) => a.time.localeCompare(b.time));
-                    
-                        updateScheduleCloud(next);
-                        setShowEditModal(false);
-                      }}
+                        
+                          updateScheduleCloud(next);
+                          setShowEditModal(false);
+                        }}
                       className="w-full py-5 bg-ink text-white font-bold"
                     >
                       儲存行程細節
