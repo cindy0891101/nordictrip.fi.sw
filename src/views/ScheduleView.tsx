@@ -78,16 +78,17 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ isEditMode, onToggleLock })
   const [fullSchedule, setFullSchedule] = useState<Record<string, DayData>>({});
 
   useEffect(() => {
-    const unsubscribe = dbService.subscribeField('schedule', (data) => {
-      if (data && typeof data === 'object') {
-        setFullSchedule(data);
-      } else if (data === undefined) {
-        setFullSchedule({});
-      }
-    });
+const unsubscribe = dbService.subscribeField('schedule', (data) => {
+  if (!data || typeof data !== 'object') return;
 
-    return () => unsubscribe();
-  }, []);
+  setFullSchedule(prev => {
+    // 如果資料完全相同就不要覆蓋
+    if (JSON.stringify(prev) === JSON.stringify(data)) {
+      return prev;
+    }
+    return data;
+  });
+});
 
   const dates = useMemo(() => Object.keys(fullSchedule || {}).sort(), [fullSchedule]);
   const [selectedDate, setSelectedDate] = useState(dates[0] || '');
@@ -133,9 +134,9 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ isEditMode, onToggleLock })
     return () => clearInterval(interval);
   }, [dates]);
 
-  const updateScheduleCloud = (newData: Record<string, DayData>) => {
+    const updateScheduleCloud = async (newData: Record<string, DayData>) => {
+    await dbService.updateField('schedule', newData);
     setFullSchedule(newData);
-    dbService.updateField('schedule', newData);
   };
 
   const fetchWeatherForLocationAndDate = useCallback(async (location: string, targetDate: string, isAutoUpgrade: boolean = false) => {
