@@ -233,18 +233,24 @@ useEffect(() => {
   const dayData = fullSchedule[selectedDate];
   if (!dayData || !dayData.items) return;
 
-  const updatedItems = [...dayData.items]
-    .map(item => ({
-      ...item,
-      time: shiftTimeStr(item.time, minutes)
-    }))
-    .sort((a, b) => a.time.localeCompare(b.time));
-
-  updateScheduleCloud({
-    ...fullSchedule,
-    [selectedDate]: {
-      ...dayData,
-      items: updatedItems
+  const updatedItem: ScheduleItem = {
+    ...editingItem,
+  };
+  
+  // 處理 link
+  const rawLink = editingItem.link?.trim();
+  if (rawLink) {
+    updatedItem.link = rawLink.startsWith('http')
+      ? rawLink
+      : 'https://' + rawLink;
+  } else {
+    delete updatedItem.link;
+  }
+  
+  // 🔥 清除所有 undefined 欄位
+  Object.keys(updatedItem).forEach(key => {
+    if (updatedItem[key as keyof ScheduleItem] === undefined) {
+      delete updatedItem[key as keyof ScheduleItem];
     }
   });
 
