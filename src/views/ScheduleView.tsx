@@ -79,6 +79,7 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ isEditMode, onToggleLock })
 
 useEffect(() => {
   const unsubscribe = dbService.subscribeField('schedule', (data) => {
+    console.log('🔥 snapshot', data);   // 👈 加在這裡
     if (!data || typeof data !== 'object') return;
 
     setFullSchedule(prev => {
