@@ -77,9 +77,20 @@ const TRANSPORT_OPTIONS = [
 const ScheduleView: React.FC<ScheduleViewProps> = ({ isEditMode, onToggleLock }) => {
   const [fullSchedule, setFullSchedule] = useState<Record<string, DayData>>({});
 
-  useEffect(() => {
-const unsubscribe = dbService.subscribeField('schedule', (data) => {
-  if (!data || typeof data !== 'object') return;
+useEffect(() => {
+  const unsubscribe = dbService.subscribeField('schedule', (data) => {
+    if (!data || typeof data !== 'object') return;
+
+    setFullSchedule(prev => {
+      if (JSON.stringify(prev) === JSON.stringify(data)) {
+        return prev;
+      }
+      return data;
+    });
+  });
+
+  return () => unsubscribe();
+}, []);
 
   setFullSchedule(prev => {
     // 如果資料完全相同就不要覆蓋
