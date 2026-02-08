@@ -624,6 +624,8 @@ const getWeatherIcon = (condition: string, hour: string, temp: number) => {
           <input type="date" value={newDateInput} onChange={(e) => setNewDateInput(e.target.value)} className="w-full h-[56px] p-6 bg-white border-2 border-paper rounded-[2rem] font-bold text-ink text-center" />
             <NordicButton
               onClick={() => {
+                if (!editingItem || !selectedDate) return;
+            
                 setFullSchedule(prev => {
                   const rawLink = editingItem.link?.trim();
             
@@ -632,14 +634,17 @@ const getWeatherIcon = (condition: string, hour: string, temp: number) => {
                       ? 'https://' + rawLink
                       : rawLink || undefined;
             
-                  const updatedItem = {
+                  const updatedItem: ScheduleItem = {
                     ...editingItem,
+                    id: editingItem.id,
+                    time: editingItem.time,
+                    location: editingItem.location,
+                    category: editingItem.category,
                     link: formattedLink,
                   };
             
                   const next = { ...prev };
             
-                  // 先從所有日期移除同 id（避免重複）
                   Object.keys(next).forEach(d => {
                     if (next[d]?.items) {
                       next[d].items = next[d].items.filter(
@@ -648,12 +653,13 @@ const getWeatherIcon = (condition: string, hour: string, temp: number) => {
                     }
                   });
             
-                  // 再加入到目前日期
                   if (next[selectedDate]) {
                     next[selectedDate].items = [
                       ...(next[selectedDate].items || []),
                       updatedItem
-                    ].sort((a, b) => a.time.localeCompare(b.time));
+                    ].sort((a, b) =>
+                      (a.time || '').localeCompare(b.time || '')
+                    );
                   }
             
                   dbService.updateField('schedule', next);
