@@ -23,10 +23,10 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const unsubscribeMembers = dbService.subscribeField('members', (data) => {
-      if (data && Array.isArray(data)) {
+      if (Array.isArray(data)) {
         setMembers(data);
-      } else if (data === undefined) {
-        dbService.updateField('members', []);
+      } else {
+        setMembers([]); // 只改本地 state，不寫回雲端
       }
     });
     
