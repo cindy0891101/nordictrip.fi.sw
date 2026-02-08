@@ -77,19 +77,17 @@ const TRANSPORT_OPTIONS = [
 const ScheduleView: React.FC<ScheduleViewProps> = ({ isEditMode, onToggleLock }) => {
   const [fullSchedule, setFullSchedule] = useState<Record<string, DayData>>({});
 
-useEffect(() => {
-  const unsubscribe = dbService.subscribeField('schedule', (data) => {
-    if (!data || typeof data !== 'object') {
-      setFullSchedule({});
-      return;
-    }
+  useEffect(() => {
+    const unsubscribe = dbService.subscribeField('schedule', (data) => {
+      if (data && typeof data === 'object') {
+        setFullSchedule(data);
+      } else if (data === undefined) {
+        setFullSchedule({});
+      }
+    });
 
-    setFullSchedule(data);
-  });
-
-  return () => unsubscribe();
-}, []);
-
+    return () => unsubscribe();
+  }, []);
 
   const dates = useMemo(() => Object.keys(fullSchedule || {}).sort(), [fullSchedule]);
   const [selectedDate, setSelectedDate] = useState(dates[0] || '');
@@ -130,15 +128,14 @@ useEffect(() => {
       if (diff < 0) setTimeLeft('旅程進行中');
       else setTimeLeft(`距離出發還有 ${Math.floor(diff / (1000 * 60 * 60 * 24))} 天`);
     };
-    
     updateTimeLeft();
     const interval = setInterval(updateTimeLeft, 60000);
     return () => clearInterval(interval);
   }, [dates]);
 
-    const updateScheduleCloud = async (newData: Record<string, DayData>) => {
-    await dbService.updateField('schedule', newData);
+  const updateScheduleCloud = (newData: Record<string, DayData>) => {
     setFullSchedule(newData);
+    dbService.updateField('schedule', newData);
   };
 
   const fetchWeatherForLocationAndDate = useCallback(async (location: string, targetDate: string, isAutoUpgrade: boolean = false) => {
@@ -602,6 +599,7 @@ const getWeatherIcon = (condition: string, hour: string, temp: number) => {
                         const next = { ...fullSchedule }; 
                         next[dateRenameInput] = { ...next[date] }; 
                         delete next[date]; 
+                        updateScheduleCloud(next); 
                         setDateToEdit(null); 
                       }} 
                       className="w-11 h-11 bg-ink text-white rounded-2xl flex items-center justify-center shadow-md active:scale-90"
@@ -610,7 +608,7 @@ const getWeatherIcon = (condition: string, hour: string, temp: number) => {
                     </button>
                   </div>
                 ) : (
-                  <><div className="flex flex-col pl-2"><span className="text-base font-bold text-ink tracking-tight">{date}</span><span className="text-[10px] text-earth-dark font-bold uppercase mt-0.5 opacity-70">{(fullSchedule[date]?.items?.length || 0)} 項目</span></div><div className="flex gap-2"><button onClick={() => { setDateToEdit(date); setDateRenameInput(date); }} className="w-11 h-11 rounded-xl bg-paper/40 text-ink flex items-center justify-center shadow-sm"><i className="fa-solid fa-pen text-xs"></i></button><button onClick={() => { if (dates.length > 1) { const next = { ...fullSchedule }; delete next[date];} }} className="w-11 h-11 rounded-xl bg-stamp/10 text-stamp flex items-center justify-center shadow-sm"><i className="fa-solid fa-trash-can text-xs"></i></button></div></>
+                  <><div className="flex flex-col pl-2"><span className="text-base font-bold text-ink tracking-tight">{date}</span><span className="text-[10px] text-earth-dark font-bold uppercase mt-0.5 opacity-70">{(fullSchedule[date]?.items?.length || 0)} 項目</span></div><div className="flex gap-2"><button onClick={() => { setDateToEdit(date); setDateRenameInput(date); }} className="w-11 h-11 rounded-xl bg-paper/40 text-ink flex items-center justify-center shadow-sm"><i className="fa-solid fa-pen text-xs"></i></button><button onClick={() => { if (dates.length > 1) { const next = { ...fullSchedule }; delete next[date]; updateScheduleCloud(next); } }} className="w-11 h-11 rounded-xl bg-stamp/10 text-stamp flex items-center justify-center shadow-sm"><i className="fa-solid fa-trash-can text-xs"></i></button></div></>
                 )}
               </div>
             ))}
@@ -622,57 +620,7 @@ const getWeatherIcon = (condition: string, hour: string, temp: number) => {
       <Modal isOpen={showDateModal} onClose={() => setShowDateModal(false)} title="新增日期">
         <div className="space-y-4 overflow-x-hidden px-1 pb-4">
           <input type="date" value={newDateInput} onChange={(e) => setNewDateInput(e.target.value)} className="w-full h-[56px] p-6 bg-white border-2 border-paper rounded-[2rem] font-bold text-ink text-center" />
-            <NordicButton
-              onClick={() => {
-                if (!editingItem || !selectedDate) return;
-            
-                setFullSchedule(prev => {
-                  const rawLink = editingItem.link?.trim();
-            
-                  const formattedLink =
-                    rawLink && !rawLink.startsWith('http')
-                      ? 'https://' + rawLink
-                      : rawLink || undefined;
-            
-                  const updatedItem: ScheduleItem = {
-                    ...editingItem,
-                    id: editingItem.id,
-                    time: editingItem.time,
-                    location: editingItem.location,
-                    category: editingItem.category,
-                    link: formattedLink,
-                  };
-            
-                  const next = { ...prev };
-            
-                  Object.keys(next).forEach(d => {
-                    if (next[d]?.items) {
-                      next[d].items = next[d].items.filter(
-                        i => i.id !== updatedItem.id
-                      );
-                    }
-                  });
-            
-                  if (next[selectedDate]) {
-                    next[selectedDate].items = [
-                      ...(next[selectedDate].items || []),
-                      updatedItem
-                    ].sort((a, b) =>
-                      (a.time || '').localeCompare(b.time || '')
-                    );
-                  }
-            
-                  dbService.updateField('schedule', next);
-            
-                  return next;
-                });
-            
-                setShowEditModal(false);
-              }}
-              className="w-full py-5 bg-ink text-white font-bold"
-            >
-              儲存行程細節
-            </NordicButton>
+          <NordicButton onClick={() => { if (!newDateInput || fullSchedule[newDateInput]) return; updateScheduleCloud({...fullSchedule, [newDateInput]: { items: [], metadata: { locationName: '新目的地', forecast: MOCK_WEATHER.map(w => ({ ...w, feelsLike: w.temp - 2 })), isLive: false } } }); setSelectedDate(newDateInput); setShowDateModal(false); setNewDateInput(''); }} className="w-full py-5 bg-stamp text-white text-sm font-bold uppercase tracking-widest">確定新增日期</NordicButton>
         </div>
       </Modal>
 
@@ -835,28 +783,25 @@ const getWeatherIcon = (condition: string, hour: string, temp: number) => {
                           formattedLink = undefined;
                         }
                     
-                        setFullSchedule(prev => {
-                          const next = { ...prev };
-                        
-                          Object.keys(next).forEach(d => {
-                            if (next[d]?.items) {
-                              next[d].items = next[d].items.filter(
-                                i => i.id !== updatedItem.id
-                              );
-                            }
-                          });
-                        
-                          if (next[selectedDate]) {
-                            next[selectedDate].items = [
-                              ...(next[selectedDate].items || []),
-                              updatedItem
-                            ].sort((a, b) => a.time.localeCompare(b.time));
-                          }
-                        
-                          dbService.updateField('schedule', next);
-                        
-                          return next;
+                        const updatedItem = {
+                          ...editingItem,
+                          link: formattedLink,
+                        };
+                    
+                        const next = { ...fullSchedule };
+                    
+                        Object.keys(next).forEach(d => {
+                          if (next[d]?.items)
+                            next[d].items = next[d].items.filter(i => i.id !== updatedItem.id);
                         });
+                    
+                        if (next[selectedDate])
+                          next[selectedDate].items = [
+                            ...(next[selectedDate].items || []),
+                            updatedItem
+                          ].sort((a, b) => a.time.localeCompare(b.time));
+                    
+                        updateScheduleCloud(next);
                         setShowEditModal(false);
                       }}
                       className="w-full py-5 bg-ink text-white font-bold"
