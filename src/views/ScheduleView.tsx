@@ -229,18 +229,27 @@ useEffect(() => {
   }, [selectedDate, fullSchedule, fetchWeatherForLocationAndDate]);
 
   const handleTimeShift = (minutes: number) => {
-    if (!selectedDate) return;
-    const dayData = fullSchedule[selectedDate];
-    if (!dayData || !dayData.items) return;
-    const updatedItem: ScheduleItem = {
-      ...editingItem,
-    };
-    
-    Object.keys(updatedItem).forEach(key => {
-      if (updatedItem[key as keyof ScheduleItem] === undefined) {
-        delete updatedItem[key as keyof ScheduleItem];
-      }
-    });
+  if (!selectedDate) return;
+  const dayData = fullSchedule[selectedDate];
+  if (!dayData || !dayData.items) return;
+
+  const updatedItems = [...dayData.items]
+    .map(item => ({
+      ...item,
+      time: shiftTimeStr(item.time, minutes)
+    }))
+    .sort((a, b) => a.time.localeCompare(b.time));
+
+  updateScheduleCloud({
+    ...fullSchedule,
+    [selectedDate]: {
+      ...dayData,
+      items: updatedItems
+    }
+  });
+
+  setShowTimeShiftModal(false);
+};
 
   const currentDayData = selectedDate ? (fullSchedule[selectedDate] || { items: [], metadata: { locationName: '未設定', forecast: [], isLive: false } }) : null;
   if (!currentDayData) return null;
