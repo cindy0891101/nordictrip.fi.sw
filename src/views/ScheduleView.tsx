@@ -89,17 +89,12 @@ useEffect(() => {
     });
   });
 
-  return () => unsubscribe();
-}, []);
-
-  setFullSchedule(prev => {
-    // 如果資料完全相同就不要覆蓋
-    if (JSON.stringify(prev) === JSON.stringify(data)) {
-      return prev;
+  return () => {
+    if (typeof unsubscribe === 'function') {
+      unsubscribe();
     }
-    return data;
-  });
-});
+  };
+}, []);
 
   const dates = useMemo(() => Object.keys(fullSchedule || {}).sort(), [fullSchedule]);
   const [selectedDate, setSelectedDate] = useState(dates[0] || '');
@@ -140,6 +135,7 @@ useEffect(() => {
       if (diff < 0) setTimeLeft('旅程進行中');
       else setTimeLeft(`距離出發還有 ${Math.floor(diff / (1000 * 60 * 60 * 24))} 天`);
     };
+    
     updateTimeLeft();
     const interval = setInterval(updateTimeLeft, 60000);
     return () => clearInterval(interval);
