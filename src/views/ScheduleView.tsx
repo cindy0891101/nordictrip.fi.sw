@@ -622,27 +622,51 @@ const getWeatherIcon = (condition: string, hour: string, temp: number) => {
       <Modal isOpen={showDateModal} onClose={() => setShowDateModal(false)} title="新增日期">
         <div className="space-y-4 overflow-x-hidden px-1 pb-4">
           <input type="date" value={newDateInput} onChange={(e) => setNewDateInput(e.target.value)} className="w-full h-[56px] p-6 bg-white border-2 border-paper rounded-[2rem] font-bold text-ink text-center" />
-          <NordicButton onClick={() => { if (!newDateInput || fullSchedule[newDateInput]) return; 
-                                      setFullSchedule(prev => {
-                                      const next = {
-                                      ...prev,
-                                      [newDateInput]: {
-                                        items: [],
-                                        metadata: {
-                                          locationName: '新目的地',
-                                          forecast: MOCK_WEATHER.map(w => ({
-                                            ...w,
-                                            feelsLike: w.temp - 2
-                                          })),
-                                          isLive: false
-                                        }
-                                      }
-                                    };
-                                  
-                                    dbService.updateField('schedule', next);
-                                    return next;
-                                    }); 
-                            setSelectedDate(newDateInput); setShowDateModal(false); setNewDateInput(''); }} className="w-full py-5 bg-stamp text-white text-sm font-bold uppercase tracking-widest">確定新增日期</NordicButton>
+            <NordicButton
+              onClick={() => {
+                setFullSchedule(prev => {
+                  const rawLink = editingItem.link?.trim();
+            
+                  const formattedLink =
+                    rawLink && !rawLink.startsWith('http')
+                      ? 'https://' + rawLink
+                      : rawLink || undefined;
+            
+                  const updatedItem = {
+                    ...editingItem,
+                    link: formattedLink,
+                  };
+            
+                  const next = { ...prev };
+            
+                  // 先從所有日期移除同 id（避免重複）
+                  Object.keys(next).forEach(d => {
+                    if (next[d]?.items) {
+                      next[d].items = next[d].items.filter(
+                        i => i.id !== updatedItem.id
+                      );
+                    }
+                  });
+            
+                  // 再加入到目前日期
+                  if (next[selectedDate]) {
+                    next[selectedDate].items = [
+                      ...(next[selectedDate].items || []),
+                      updatedItem
+                    ].sort((a, b) => a.time.localeCompare(b.time));
+                  }
+            
+                  dbService.updateField('schedule', next);
+            
+                  return next;
+                });
+            
+                setShowEditModal(false);
+              }}
+              className="w-full py-5 bg-ink text-white font-bold"
+            >
+              儲存行程細節
+            </NordicButton>
         </div>
       </Modal>
 
