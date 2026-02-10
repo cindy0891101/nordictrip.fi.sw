@@ -44,6 +44,8 @@ const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
   try {
     const safeFile = await compressImage(file); // 🔥 壓縮
 
+    const tempId = editingBooking.id || Date.now().toString();
+
     const imageRef = ref(
       storage,
       `bookings/${tempId}_${Date.now()}.jpg`
