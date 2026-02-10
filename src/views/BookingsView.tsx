@@ -29,9 +29,14 @@ const BookingsView: React.FC<BookingsViewProps> = ({ isEditMode, onToggleLock })
     return bookings.filter(b => b.type === activeTab).sort((a, b) => a.date.localeCompare(b.date));
   }, [bookings, activeTab]);
 
-  const updateBookingsCloud = (newBookings: Booking[]) => {
-    setBookings(newBookings);
-    dbService.updateField('bookings', newBookings);
+  const updateBookingsCloud = (
+    updater: (prev: Booking[]) => Booking[]
+  ) => {
+    setBookings(prev => {
+      const next = updater(prev);
+      dbService.updateField('bookings', next);
+      return next;
+    });
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -49,28 +54,40 @@ const BookingsView: React.FC<BookingsViewProps> = ({ isEditMode, onToggleLock })
     }
   };
 
-  const handleSave = () => {
-    if (!editingBooking?.title) return;
+    const handleSave = () => {
+      if (!editingBooking?.title) return;
     
-    let next;
-    if (editingBooking.id) {
-      next = bookings.map(b => b.id === editingBooking.id ? editingBooking as Booking : b);
-    } else {
-      const newBooking = { 
-        ...editingBooking, 
-        id: Date.now().toString(), 
-        type: activeTab,
-        date: editingBooking.date || new Date().toISOString().split('T')[0]
-      } as Booking;
-      next = [newBooking, ...bookings];
-    }
-    updateBookingsCloud(next);
-    setShowAddModal(false);
-    setEditingBooking(null);
-  };
+      if (editingBooking.id) {
+        updateBookingsCloud(prev =>
+          prev.map(b =>
+            b.id === editingBooking.id
+              ? editingBooking as Booking
+              : b
+          )
+        );
+      } else {
+        const newBooking = {
+          ...editingBooking,
+          id: crypto.randomUUID(),
+          type: activeTab,
+          date:
+            editingBooking.date ||
+            new Date().toISOString().split('T')[0],
+        } as Booking;
+    
+        updateBookingsCloud(prev => [newBooking, ...prev]);
+      }
+    
+      setShowAddModal(false);
+      setEditingBooking(null);
+    };
+
 
   const deleteBooking = (id: string) => {
-    updateBookingsCloud(bookings.filter(b => b.id !== id));
+    updateBookingsCloud(prev =>
+      prev.filter(b => b.id !== id)
+    );
+  
     if (expandedFlightId === id) setExpandedFlightId(null);
     if (expandedTicketId === id) setExpandedTicketId(null);
   };
