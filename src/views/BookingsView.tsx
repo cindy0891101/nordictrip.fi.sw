@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Modal, NordicButton } from '../components/Shared';
 import type { Booking, BookingType } from '../types';
-import { dbService } from '../firebaseService';
+import { bookingsService } from '../firebaseService';
 import { storage } from '../firebaseService';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { compressImage } from '../imageUtils';
@@ -21,21 +21,14 @@ const BookingsView: React.FC<BookingsViewProps> = ({ isEditMode, onToggleLock })
   const [editingBooking, setEditingBooking] = useState<Partial<Booking> | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    const unsubscribe = dbService.subscribeField('bookings', (data) => {
-      setBookings(data || []);
-    });
-    return () => unsubscribe();
-  }, []);
+useEffect(() => {
+  const unsubscribe = bookingsService.subscribe(setBookings);
+  return () => unsubscribe();
+}, []);
 
   const filteredBookings = useMemo(() => {
     return bookings.filter(b => b.type === activeTab).sort((a, b) => a.date.localeCompare(b.date));
   }, [bookings, activeTab]);
-
-  const updateBookingsCloud = (newBookings: Booking[]) => {
-    setBookings(newBookings);
-    dbService.updateField('bookings', newBookings);
-  };
 
 const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
   console.log("🔥 handleImageUpload triggered");
@@ -74,31 +67,28 @@ const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
   e.target.value = '';
 };
 
-  const handleSave = () => {
-    if (!editingBooking?.title) return;
-    
-    let next;
-    if (editingBooking.id) {
-      next = bookings.map(b => b.id === editingBooking.id ? editingBooking as Booking : b);
-    } else {
-      const newBooking = { 
-        ...editingBooking, 
-        id: Date.now().toString(), 
-        type: activeTab,
-        date: editingBooking.date || new Date().toISOString().split('T')[0]
-      } as Booking;
-      next = [newBooking, ...bookings];
-    }
-    updateBookingsCloud(next);
-    setShowAddModal(false);
-    setEditingBooking(null);
-  };
+const handleSave = async () => {
+  if (!editingBooking?.title) return;
 
-  const deleteBooking = (id: string) => {
-    updateBookingsCloud(bookings.filter(b => b.id !== id));
-    if (expandedFlightId === id) setExpandedFlightId(null);
-    if (expandedTicketId === id) setExpandedTicketId(null);
-  };
+  if (editingBooking.id) {
+    await bookingsService.update(editingBooking.id, editingBooking);
+  } else {
+    await bookingsService.add({
+      ...editingBooking,
+      type: activeTab,
+      date:
+        editingBooking.date ||
+        new Date().toISOString().split("T")[0],
+    });
+  }
+
+  setShowAddModal(false);
+  setEditingBooking(null);
+};
+
+const deleteBooking = async (id: string) => {
+  await bookingsService.delete(id);
+};
 
   const openGoogleMaps = (address: string) => {
     if (!address) return;
