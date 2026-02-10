@@ -9,6 +9,8 @@ import { Modal, NordicButton } from './components/Shared';
 import type { Member } from './types';
 import { dbService } from './firebaseService';
 import { uploadMemberAvatar } from './firebaseService';
+import { doc, getDoc, collection, setDoc } from "firebase/firestore";
+import { db } from "./firebaseService";
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'schedule' | 'bookings' | 'expense' | 'planning' | 'members'>('schedule');
@@ -18,9 +20,44 @@ const App: React.FC = () => {
   const [members, setMembers] = useState<Member[]>([]);
   const [sharedDriveUrl, setSharedDriveUrl] = useState<string>('');
 
+async function migrateBookings() {
+  const tripRef = doc(db, "trips", "trip_2025_nordic_master");
+  const snap = await getDoc(tripRef);
+
+  if (!snap.exists()) {
+    console.log("No trip document found");
+    return;
+  }
+
+  const bookings = snap.data().bookings;
+
+  if (!bookings || !Array.isArray(bookings)) {
+    console.log("No bookings array found");
+    return;
+  }
+
+  for (const booking of bookings) {
+    const bookingRef = doc(
+      collection(tripRef, "bookings"),
+      booking.id
+    );
+
+    await setDoc(bookingRef, booking);
+  }
+
+  console.log("🔥 Migration complete");
+}
+
+
+
+  
   useEffect(() => {
     dbService.initAuth().catch(() => console.log("Auth initialized in local mode"));
   }, []);
+
+  useEffect(() => {
+  migrateBookings();
+}, []);
 
   useEffect(() => {
     const unsubscribeMembers = dbService.subscribeField('members', (data) => {
