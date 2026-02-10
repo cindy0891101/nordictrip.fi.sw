@@ -38,7 +38,11 @@ const BookingsView: React.FC<BookingsViewProps> = ({ isEditMode, onToggleLock })
   };
 
 const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  console.log("🔥 handleImageUpload triggered");
+
   const file = e.target.files?.[0];
+  console.log("file:", file);
+
   if (!file || !editingBooking) return;
 
   try {
