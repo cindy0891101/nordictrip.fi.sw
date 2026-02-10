@@ -3,6 +3,9 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Modal, NordicButton } from '../components/Shared';
 import type { Booking, BookingType } from '../types';
 import { dbService } from '../firebaseService';
+import { storage } from '../firebaseService';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { compressImage } from '../imageUtils';
 
 interface BookingsViewProps {
   isEditMode?: boolean;
@@ -34,20 +37,36 @@ const BookingsView: React.FC<BookingsViewProps> = ({ isEditMode, onToggleLock })
     dbService.updateField('bookings', newBookings);
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && editingBooking) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setEditingBooking({ 
-          ...editingBooking, 
-          details: { ...editingBooking.details, image: reader.result as string } 
-        });
-        e.target.value = '';
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (!file || !editingBooking) return;
+
+  try {
+    const safeFile = await compressImage(file); // 🔥 壓縮
+
+    const imageRef = ref(
+      storage,
+      `bookings/${tempId}_${Date.now()}.jpg`
+    );
+
+    await uploadBytes(imageRef, safeFile);
+
+    const url = await getDownloadURL(imageRef);
+
+    setEditingBooking({
+      ...editingBooking,
+      details: {
+        ...editingBooking.details,
+        image: url, // 🔥 存網址
+      },
+    });
+
+  } catch (err) {
+    console.error('Image upload failed:', err);
+  }
+
+  e.target.value = '';
+};
 
   const handleSave = () => {
     if (!editingBooking?.title) return;
