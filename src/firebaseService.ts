@@ -2,6 +2,9 @@ import { initializeApp } from 'firebase/app';
 import {
   getFirestore,
   doc,
+  collection,
+  addDoc,
+  deleteDoc,
   onSnapshot,
   updateDoc,
   setDoc,
@@ -106,6 +109,59 @@ export const dbService = {
     } catch {
       await setDoc(ref, { [field]: value }, { merge: true });
     }
+  },
+};
+export const bookingsService = {
+  subscribe: (cb: (data: any[]) => void) => {
+    const colRef = collection(
+      db,
+      'trips',
+      DEFAULT_TRIP_ID,
+      'bookings'
+    );
+
+    return onSnapshot(colRef, (snap) => {
+      const list = snap.docs.map(d => ({
+        id: d.id,
+        ...d.data(),
+      }));
+      cb(list);
+    });
+  },
+
+  add: async (booking: any) => {
+    const colRef = collection(
+      db,
+      'trips',
+      DEFAULT_TRIP_ID,
+      'bookings'
+    );
+
+    await addDoc(colRef, booking);
+  },
+
+  update: async (id: string, booking: any) => {
+    const docRef = doc(
+      db,
+      'trips',
+      DEFAULT_TRIP_ID,
+      'bookings',
+      id
+    );
+
+    await updateDoc(docRef, booking);
+  },
+
+  delete: async (id: string) => {
+    const docRef = doc(
+      db,
+      'trips',
+      DEFAULT_TRIP_ID,
+      'bookings',
+      id
+    );
+
+    await deleteDoc(docRef);
   },
 };
 
