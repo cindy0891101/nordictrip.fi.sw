@@ -37,7 +37,7 @@ const DEFAULT_TRIP_ID = 'trip_2025_nordic_master';
 
 const app = initializeApp(firebaseConfig);
 
-const db = getFirestore(app);
+export const db = getFirestore(app);
 export const storage = getStorage(app);
 
 const auth = getAuth(app);
@@ -164,6 +164,7 @@ export const bookingsService = {
     await deleteDoc(docRef);
   },
 };
+
 
 
 
