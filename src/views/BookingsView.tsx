@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Modal, NordicButton } from '../components/Shared';
 import type { Booking, BookingType } from '../types';
-import { bookingsService } from '../firebaseService';
+import { dbService } from '../firebaseService';
 
 interface BookingsViewProps {
   isEditMode?: boolean;
@@ -19,13 +19,20 @@ const BookingsView: React.FC<BookingsViewProps> = ({ isEditMode, onToggleLock })
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const unsubscribe = bookingsService.subscribe(setBookings);
+    const unsubscribe = dbService.subscribeField('bookings', (data) => {
+      setBookings(data || []);
+    });
     return () => unsubscribe();
   }, []);
 
   const filteredBookings = useMemo(() => {
     return bookings.filter(b => b.type === activeTab).sort((a, b) => a.date.localeCompare(b.date));
   }, [bookings, activeTab]);
+
+  const updateBookingsCloud = (newBookings: Booking[]) => {
+    setBookings(newBookings);
+    dbService.updateField('bookings', newBookings);
+  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -42,36 +49,31 @@ const BookingsView: React.FC<BookingsViewProps> = ({ isEditMode, onToggleLock })
     }
   };
 
-    const handleSave = async () => {
-      if (!editingBooking?.title) return;
+  const handleSave = () => {
+    if (!editingBooking?.title) return;
     
-      const { id, ...rest } = editingBooking;
-    
-      const baseData = {
-        ...rest,
+    let next;
+    if (editingBooking.id) {
+      next = bookings.map(b => b.id === editingBooking.id ? editingBooking as Booking : b);
+    } else {
+      const newBooking = { 
+        ...editingBooking, 
+        id: Date.now().toString(), 
         type: activeTab,
-        date:
-          editingBooking.date ||
-          new Date().toISOString().split('T')[0],
-      };
-    
-      if (editingBooking.id) {
-        await bookingsService.update(editingBooking.id, baseData);
-      } else {
-        await bookingsService.add(baseData);
-      }
-    
-      setShowAddModal(false);
-      setEditingBooking(null);
-    };
+        date: editingBooking.date || new Date().toISOString().split('T')[0]
+      } as Booking;
+      next = [newBooking, ...bookings];
+    }
+    updateBookingsCloud(next);
+    setShowAddModal(false);
+    setEditingBooking(null);
+  };
 
-
-    const deleteBooking = async (id: string) => {
-      await bookingsService.delete(id);
-    
-      if (expandedFlightId === id) setExpandedFlightId(null);
-      if (expandedTicketId === id) setExpandedTicketId(null);
-    };
+  const deleteBooking = (id: string) => {
+    updateBookingsCloud(bookings.filter(b => b.id !== id));
+    if (expandedFlightId === id) setExpandedFlightId(null);
+    if (expandedTicketId === id) setExpandedTicketId(null);
+  };
 
   const openGoogleMaps = (address: string) => {
     if (!address) return;
@@ -133,7 +135,7 @@ const BookingsView: React.FC<BookingsViewProps> = ({ isEditMode, onToggleLock })
             <div className="absolute right-[-12px] top-[-12px] w-6 h-6 rounded-full bg-cream shadow-inner border border-black/5"></div>
             <div className="flex justify-between items-center">
               <div className="text-left min-w-[80px]">
-                <div className="text-3xl font-bold text-ink tracking-tighter leading-none">{flight.details?.from || '---'}</div>
+                <div className="text-3xl font-bold text-ink tracking-tighter leading-none">{flight.details.from || '---'}</div>
                 <div className="text-base font-bold text-ink/70 mt-1">{flight.details.depTime || '--:--'}</div>
                 <div className="text-[8px] text-ink/40 font-bold uppercase tracking-[0.15em] mt-2">DEPARTURE</div>
               </div>
